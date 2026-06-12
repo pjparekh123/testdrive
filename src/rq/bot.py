@@ -265,6 +265,11 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await query.answer("💤 snoozed 30 days")
             await query.edit_message_text(f"💤 snoozed until {until}: {item.title or item.url}")
 
+        elif action == "keep":
+            _set_status(conn, item, "kept", "kept")
+            await query.answer("💚 kept")
+            await query.edit_message_text(f"💚 kept: {item.title or item.url}")
+
         elif action == "mark_read":
             _set_status(conn, item, "read", "marked_read")
             await query.answer("✓ marked read")
@@ -309,17 +314,23 @@ def register_handlers(app: Application) -> None:
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_message))
 
 
-def build_application(token: str | None = None) -> Application:
+def build_application(token: str | None = None, post_init=None) -> Application:
     s = get_settings()
-    app = ApplicationBuilder().token(token or s.telegram_bot_token).build()
+    builder = ApplicationBuilder().token(token or s.telegram_bot_token)
+    if post_init is not None:
+        builder = builder.post_init(post_init)
+    app = builder.build()
     register_handlers(app)
     return app
 
 
 def run() -> None:
-    """Run the bot in the foreground (long-polling)."""
+    """Run the bot in the foreground (long-polling), with the weekly-digest
+    scheduler started in the same event loop."""
+    from .scheduler import on_post_init
+
     s = get_settings()
     configure_logging(s.log_level)
     log.info("bot.start", allowed_users=len(s.allowed_user_ids))
-    app = build_application()
+    app = build_application(post_init=on_post_init)
     app.run_polling()

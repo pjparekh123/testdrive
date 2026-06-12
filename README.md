@@ -8,10 +8,11 @@ See [`SPEC.md`](./SPEC.md) for the full design.
 
 ## Status
 
-Built in phases (see §15 of the spec). **Phases 1–4 complete:** repo skeleton +
+Built in phases (see §15 of the spec). **Phases 1–5 complete:** repo skeleton +
 migrations + config + logging + `rq doctor` (1); real LLM enrichment via the
 single wrapper (2); scoring system + domain reputation + `rq eval` harness (3);
-Telegram bot with the kill/keep loop (4).
+Telegram bot with the kill/keep loop (4); weekly digest composer + in-process
+scheduler, `rq digest --dry-run` / `--send` (5).
 
 ## Quickstart
 

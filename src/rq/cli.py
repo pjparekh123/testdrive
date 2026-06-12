@@ -307,9 +307,28 @@ def bot():
 
 
 @app.command()
-def digest(dry_run: bool = typer.Option(False, "--dry-run")):
-    """Generate (and send) the weekly digest (Phase 5)."""
-    _todo("Phase 5")
+def digest(
+    dry_run: bool = typer.Option(False, "--dry-run", help="Print without sending (default)"),
+    send: bool = typer.Option(False, "--send", help="Compose and send now"),
+):
+    """Generate the weekly digest (§7.5). Dry-run by default."""
+    _boot()
+    from .digest import md_to_preview, send_digest
+
+    conn = db.get_conn()
+    try:
+        if send:
+            s = get_settings()
+            if not s.telegram_bot_token or not s.allowed_user_ids:
+                typer.echo("can't send: set TELEGRAM_BOT_TOKEN and TELEGRAM_ALLOWED_USER_IDS.")
+                raise typer.Exit(1)
+            asyncio.run(send_digest(conn=conn, dry_run=False))
+            typer.echo("✅ digest sent.")
+        else:
+            text = asyncio.run(send_digest(conn=conn, dry_run=True))
+            typer.echo(md_to_preview(text))
+    finally:
+        conn.close()
 
 
 @app.command()

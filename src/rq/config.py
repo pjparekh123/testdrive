@@ -27,6 +27,7 @@ class Settings(BaseSettings):
 
     db_path: Path = Path("./rq.db")
     digest_cron: str = "0 9 * * SUN"
+    digest_goal: int = 30  # target queue size shown in the digest footer
     local_tz: str = "America/Los_Angeles"
     log_level: str = "INFO"
 
