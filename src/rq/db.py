@@ -163,6 +163,34 @@ def list_items(
     return [row_to_item(r) for r in rows]
 
 
+def get_embedding(conn: sqlite3.Connection, item_id: int) -> bytes | None:
+    row = conn.execute("SELECT embedding FROM items WHERE id=?", (item_id,)).fetchone()
+    return row["embedding"] if row else None
+
+
+def recent_embeddings(
+    conn: sqlite3.Connection, limit: int = 50, exclude_id: int | None = None
+) -> list[bytes]:
+    """Embedding blobs of the most-recent items (for novelty), newest first."""
+    q = "SELECT embedding FROM items WHERE embedding IS NOT NULL"
+    params: list = []
+    if exclude_id is not None:
+        q += " AND id <> ?"
+        params.append(exclude_id)
+    q += " ORDER BY added_at DESC LIMIT ?"
+    params.append(limit)
+    return [r["embedding"] for r in conn.execute(q, params)]
+
+
+def update_item_score(
+    conn: sqlite3.Connection, item_id: int, score: int | None, breakdown: dict | None
+) -> None:
+    conn.execute(
+        "UPDATE items SET score=?, score_breakdown_json=? WHERE id=?",
+        (score, json.dumps(breakdown) if breakdown else None, item_id),
+    )
+
+
 def recent_kept_titles(conn: sqlite3.Connection, n: int = 20) -> list[str]:
     """Titles of the last ``n`` kept/read items, for novelty comparison (§8.3)."""
     rows = conn.execute(

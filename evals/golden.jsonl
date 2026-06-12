@@ -1,1 +1,5 @@
-{"url": "https://example.com/placeholder", "expected_score_bucket": "high", "expected_pitch_quality_notes": "Phase 3 will replace this with 30 hand-curated, personally-rated URLs."}
+{"url": "https://www.anthropic.com/research/evaluating-ai-systems", "my_rating": 5, "notes": "Core to my interests — rigorous take on eval design; want for the talk.", "expected_tags": ["llm-evals", "benchmarks", "methodology"]}
+{"url": "https://www.citylab.com/housing/2025/upzoning-results", "my_rating": 4, "notes": "Solid data on upzoning outcomes; a bit policy-wonky but useful.", "expected_tags": ["urban-planning", "housing", "policy"]}
+{"url": "https://without.boats/blog/async-rust-trait-methods/", "my_rating": 4, "notes": "Deep systems content; relevant to the Rust work.", "expected_tags": ["rust", "async", "systems-programming"]}
+{"url": "https://medium.com/@guru/10-morning-routines-of-highly-productive-people", "my_rating": 2, "notes": "Generic productivity listicle — usually skip these.", "expected_tags": ["productivity", "listicle"]}
+{"url": "https://cryptodaily.example/why-token-x-will-hit-100k", "my_rating": 1, "notes": "Crypto price speculation. Hard avoid.", "expected_tags": ["crypto", "price-speculation"]}
