@@ -39,7 +39,8 @@ def test_migrate_is_idempotent(tmp_path):
     v2 = db.migrate(conn, REAL_MIGRATIONS)
     assert v1 == v2
     rows = conn.execute("SELECT COUNT(*) AS c FROM schema_version").fetchone()["c"]
-    assert rows == 1  # version 1 recorded exactly once
+    # one row per applied migration, no duplicates from the second run
+    assert rows == db.required_version(REAL_MIGRATIONS)
     conn.close()
 
 

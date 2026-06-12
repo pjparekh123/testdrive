@@ -120,6 +120,8 @@ def compose_message(
     kill_these: list[Item],
     stats: DigestStats,
     now: datetime | None = None,
+    suggestions: list | None = None,
+    notice: str | None = None,
 ) -> str:
     """Produce the MarkdownV2 digest message text (§7.5 format)."""
     now = now or datetime.now(timezone.utc)
@@ -130,6 +132,7 @@ def compose_message(
         L.append("Your queue is clear — nothing to surface this week\\. 🎉")
         L.append("")
         L.append(_footer(stats))
+        _append_extras(L, suggestions, notice)
         return "\n".join(L)
 
     # ✨ Read this
@@ -163,11 +166,22 @@ def compose_message(
 
     L.append("")
     L.append(_footer(stats))
+    _append_extras(L, suggestions, notice)
     return "\n".join(L)
 
 
 def _footer(stats: DigestStats) -> str:
     return f"📥 queue: *{stats.queue_size}* → goal: under {stats.goal} by month\\-end"
+
+
+def _append_extras(L: list[str], suggestions: list | None, notice: str | None) -> None:
+    """Interest-drift suggestions (§7.6) and the cost-cap notice (§18)."""
+    for sg in (suggestions or [])[:3]:
+        L.append("")
+        L.append(f"💡 {escape_md(sg.to_text())}")
+    if notice:
+        L.append("")
+        L.append(f"💸 {escape_md(notice)}")
 
 
 # --- inline keyboard (reuses the bot's callback actions) --------------------
@@ -220,8 +234,22 @@ async def send_digest(conn=None, bot=None, dry_run: bool = False, now: datetime 
         qsize = conn.execute(
             "SELECT COUNT(*) AS c FROM items WHERE status='queued'"
         ).fetchone()["c"]
-        text = compose_message(sel.read_this, sel.skim, sel.kill_these,
-                               DigestStats(qsize, s.digest_goal), now=now)
+
+        from . import learn
+        from .config import load_interests
+
+        suggestions = learn.detect_interest_drift(conn, load_interests())
+        spend = db.get_month_spend(conn)
+        notice = None
+        if spend >= s.monthly_cost_cap_usd:
+            notice = (
+                f"monthly cost cap (${s.monthly_cost_cap_usd:.2f}) reached — "
+                "new saves are queued without summaries until next month."
+            )
+        text = compose_message(
+            sel.read_this, sel.skim, sel.kill_these, DigestStats(qsize, s.digest_goal),
+            now=now, suggestions=suggestions, notice=notice,
+        )
         if dry_run:
             return text
 

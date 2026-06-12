@@ -22,17 +22,22 @@ def conn(tmp_path: Path):
 
 
 @pytest.fixture
-def anthropic_env(monkeypatch):
-    """Give the SDK a dummy key and reset the wrapper's cached client/tracker so
-    each test starts clean (no real network — VCR intercepts httpx)."""
+def anthropic_env(monkeypatch, tmp_path):
+    """Give the SDK a dummy key, point cost tracking at a throwaway DB, and reset
+    the wrapper's cached client/tracker/conn so each test starts clean (no real
+    network — VCR intercepts httpx)."""
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
-    get_settings.cache_clear()
-    llm._client.cache_clear()
-    llm._cost_tracker.cache_clear()
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "llm.db"))
+
+    def _reset():
+        get_settings.cache_clear()
+        llm._client.cache_clear()
+        llm._cost_tracker.cache_clear()
+        llm._cost_conn.cache_clear()
+
+    _reset()
     yield
-    get_settings.cache_clear()
-    llm._client.cache_clear()
-    llm._cost_tracker.cache_clear()
+    _reset()
 
 
 @pytest.fixture

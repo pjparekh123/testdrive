@@ -12,6 +12,7 @@ import sqlite3
 from . import db, score as scoring
 from .config import get_settings, load_interests
 from .enrich import enrich
+from .llm import CostCapExceeded
 from .fetch import canonicalize_url, domain_of, fetch_and_extract
 from .logging import get_logger
 from .schemas import Item
@@ -58,13 +59,15 @@ async def add_url(url: str, source: str = "cli", conn: sqlite3.Connection | None
         word_count=page.word_count or None,
         read_minutes=read_minutes,
         status="queued",
-        added_via=source if source in ("telegram", "cli", "shortcut") else "cli",
+        added_via=source if source in ("telegram", "cli", "shortcut", "import") else "cli",
     )
 
     # 3. Real enrichment (3 LLM passes + embedding). Only attempted when we have
     #    article text. Failures leave the row queued + unenriched (no crash).
+    #    If the monthly cost cap is hit (§18), we save raw_text only and queue it.
     embedding_blob: bytes | None = None
     enriched = False
+    cost_capped = False
     if fetched_ok:
         try:
             interests = load_interests()
@@ -80,6 +83,9 @@ async def add_url(url: str, source: str = "cli", conn: sqlite3.Connection | None
             if result.embedding is not None:
                 embedding_blob = scoring.embedding_to_blob(result.embedding)
             enriched = True
+        except CostCapExceeded:
+            cost_capped = True
+            log.warning("ingest.cost_capped", url=canonical)
         except Exception as e:
             log.warning("ingest.enrich_failed", url=canonical, error=str(e)[:300])
 
@@ -87,7 +93,8 @@ async def add_url(url: str, source: str = "cli", conn: sqlite3.Connection | None
     try:
         with conn:
             item_id = db.insert_item(conn, item, embedding=embedding_blob)
-            db.emit_event(conn, item_id, "added", {"via": source})
+            db.emit_event(conn, item_id, "added",
+                          {"via": source, **({"cost_capped": True} if cost_capped else {})})
             if enriched:
                 db.emit_event(conn, item_id, "enriched", {"tags": item.tags})
         item.id = item_id

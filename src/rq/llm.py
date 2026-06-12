@@ -80,8 +80,43 @@ class CostTracker:
 
 
 @lru_cache(maxsize=1)
+def _cost_conn():
+    """A dedicated connection for the cost ledger (used during enrichment, when
+    the caller's connection is idle). Degrades to None if the DB is unavailable."""
+    from . import db
+
+    try:
+        return db.get_conn()
+    except Exception:  # pragma: no cover - DB optional for cost tracking
+        return None
+
+
+@lru_cache(maxsize=1)
 def _cost_tracker() -> CostTracker:
-    return CostTracker(get_settings().monthly_cost_cap_usd)
+    tracker = CostTracker(get_settings().monthly_cost_cap_usd)
+    # Seed in-process spend from the persisted monthly total so the cap holds
+    # across separate processes (CLI runs, bot restarts).
+    from . import db
+
+    conn = _cost_conn()
+    if conn is not None:
+        try:
+            tracker.spent_usd = db.get_month_spend(conn)
+        except Exception:
+            pass
+    return tracker
+
+
+def _persist_cost(cost: float) -> None:
+    from . import db
+
+    conn = _cost_conn()
+    if conn is None:
+        return
+    try:
+        db.add_month_spend(conn, cost)
+    except Exception as e:  # never let cost bookkeeping break enrichment
+        log.warning("llm.cost_persist_failed", error=str(e)[:120])
 
 
 @lru_cache(maxsize=1)
@@ -136,6 +171,7 @@ async def call(
             model=model, messages=messages, max_tokens=max_tokens, temperature=temperature
         )
         cost = tracker.record(model, usage[0], usage[1])
+        _persist_cost(cost)
         log.info(
             "llm.call",
             prompt=prompt_name,

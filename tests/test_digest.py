@@ -150,3 +150,19 @@ async def test_send_digest_marks_surfaced(conn, monkeypatch):
     kinds = [r["kind"] for r in conn.execute("SELECT kind FROM events WHERE item_id=?", (iid,))]
     assert "surfaced" in kinds
     get_settings.cache_clear()  # don't leak the allowed-users env to other tests
+
+
+# --- footer extras: drift suggestions (§7.6) + cost notice (§18) ------------
+
+
+def test_compose_includes_suggestions_and_notice():
+    from rq.learn import DriftSuggestion
+
+    sugg = [DriftSuggestion("add", "urban-planning", kept=8, total=10)]
+    msg = compose_message(
+        [_it(1, pitch="x", rm=3, score=80, domain="x.com")], [], [],
+        DigestStats(1, 30), now=NOW, suggestions=sugg,
+        notice="monthly cost cap ($5.00) reached.",
+    )
+    assert "💡" in msg and "urban\\-planning" in msg
+    assert "💸" in msg and "cost cap" in msg

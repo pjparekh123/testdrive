@@ -207,6 +207,35 @@ def _print_stats(conn) -> None:
     rate = f"{killed / resolved:.0%}" if resolved else "n/a"
     typer.echo(f"\n  kill rate       {rate}  ({killed}/{resolved} resolved)")
 
+    # Scoring sanity: do kept items score higher than killed ones?
+    kept_avg, killed_avg = db.avg_score_by_disposition(conn)
+    def _fmt(v):
+        return f"{v:.0f}" if v is not None else "—"
+    typer.echo("\n  avg score (sanity check)")
+    typer.echo(f"    kept/read    {_fmt(kept_avg)}")
+    typer.echo(f"    killed       {_fmt(killed_avg)}")
+    if kept_avg is not None and killed_avg is not None:
+        verdict = "✅ kept > killed" if kept_avg > killed_avg else "⚠️ scoring not tracking behavior"
+        typer.echo(f"    {verdict}")
+
+    # Top domains.
+    by_rep = db.top_domains_by_reputation(conn, 5)
+    if by_rep:
+        typer.echo("\n  top domains by reputation")
+        for dom, rep, kor, kld in by_rep:
+            typer.echo(f"    {rep:.2f}  {dom:<28} ({kor} kept / {kld} killed)")
+    by_count = db.top_domains_by_count(conn, 5)
+    if by_count:
+        typer.echo("\n  top domains by count")
+        for dom, c in by_count:
+            typer.echo(f"    {c:>4}  {dom}")
+
+    # Cost cap (§18).
+    spend = db.get_month_spend(conn)
+    cap = get_settings().monthly_cost_cap_usd
+    flag = "  ⚠️ CAP REACHED" if spend >= cap else ""
+    typer.echo(f"\n  llm spend this month  ${spend:.4f} / ${cap:.2f}{flag}")
+
 
 # --- status mutations -------------------------------------------------------
 
@@ -349,9 +378,25 @@ def export(format: str = typer.Option("json", "--format")):
 
 
 @app.command(name="import")
-def import_cmd(file: Path):
-    """Backfill from Pocket/Instapaper (Phase 6)."""
-    _todo("Phase 6")
+def import_cmd(file: Path = typer.Argument(..., help="Pocket .html or Instapaper .csv export")):
+    """Backfill historical items from a Pocket/Instapaper export."""
+    _boot()
+    from .importers import import_file
+
+    if not file.exists():
+        typer.echo(f"file not found: {file}")
+        raise typer.Exit(1)
+
+    def progress(i: int, n: int):
+        if i == 1 or i % 25 == 0 or i == n:
+            typer.echo(f"  … {i}/{n}")
+
+    typer.echo(f"importing {file.name} …")
+    report = asyncio.run(import_file(file, on_progress=progress))
+    typer.echo(
+        f"done: {report.added} new, {report.duplicates} duplicate, "
+        f"{report.failed} failed (of {report.total})."
+    )
 
 
 @app.command(name="eval")

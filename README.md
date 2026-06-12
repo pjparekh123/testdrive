@@ -8,11 +8,12 @@ See [`SPEC.md`](./SPEC.md) for the full design.
 
 ## Status
 
-Built in phases (see §15 of the spec). **Phases 1–5 complete:** repo skeleton +
+Built in phases (see §15 of the spec). **Phases 1–6 complete:** repo skeleton +
 migrations + config + logging + `rq doctor` (1); real LLM enrichment via the
 single wrapper (2); scoring system + domain reputation + `rq eval` harness (3);
 Telegram bot with the kill/keep loop (4); weekly digest composer + in-process
-scheduler, `rq digest --dry-run` / `--send` (5).
+scheduler (5); interest-drift suggestions, Pocket/Instapaper import, monthly
+cost cap, `rq stats`, and nightly backups (6).
 
 ## Quickstart
 
@@ -53,6 +54,28 @@ Drop the bot any URL from your phone and it saves it with a one-line pitch and
 
 Commands: `/start` `/help` `/add <url>` `/queue` `/stats` `/digest_now`
 `/kill_old`. Any message containing one or more URLs is treated as an add.
+
+## Importing existing bookmarks
+
+Backfill from a Pocket or Instapaper export — each URL goes through full
+enrichment (and the §18 cost cap applies):
+
+```bash
+uv run rq import ~/Downloads/pocket_export.html      # Pocket (HTML)
+uv run rq import ~/Downloads/instapaper-export.csv   # Instapaper (CSV)
+```
+
+## Backups
+
+Nightly logical dump, rotated weekly (`scripts/backup.sh`). Add to crontab:
+
+```cron
+# nightly at 03:00
+0 3 * * *  cd /path/to/reading-queue && DB_PATH=./rq.db ./scripts/backup.sh
+```
+
+Each run writes `backup/rq-YYYYMMDD-HHMMSS.sql.gz` and deletes dumps older than
+7 days (`RETENTION_DAYS` to change).
 
 ## Development
 

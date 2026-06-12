@@ -298,3 +298,73 @@ def emit_event(
         ),
     )
     log.info("event", item_id=item_id, kind=kind)
+
+
+# --- cost ledger (§18) ------------------------------------------------------
+
+
+def month_key(now: datetime | None = None) -> str:
+    return (now or utcnow()).strftime("%Y-%m")
+
+
+def get_month_spend(conn: sqlite3.Connection, month: str | None = None) -> float:
+    month = month or month_key()
+    row = conn.execute(
+        "SELECT spent_usd FROM cost_ledger WHERE month=?", (month,)
+    ).fetchone()
+    return row["spent_usd"] if row else 0.0
+
+
+def add_month_spend(
+    conn: sqlite3.Connection, cost: float, month: str | None = None
+) -> float:
+    month = month or month_key()
+    conn.execute(
+        """
+        INSERT INTO cost_ledger (month, spent_usd, updated_at)
+        VALUES (?,?,CURRENT_TIMESTAMP)
+        ON CONFLICT(month) DO UPDATE SET
+          spent_usd = spent_usd + excluded.spent_usd,
+          updated_at = excluded.updated_at
+        """,
+        (month, cost),
+    )
+    conn.commit()
+    return get_month_spend(conn, month)
+
+
+# --- stats helpers (§7 + rq stats) ------------------------------------------
+
+
+def avg_score_by_disposition(conn: sqlite3.Connection) -> tuple[float | None, float | None]:
+    """(avg score of kept/read items, avg score of killed items)."""
+    kept = conn.execute(
+        "SELECT AVG(score) AS a FROM items WHERE status IN ('kept','read') AND score IS NOT NULL"
+    ).fetchone()["a"]
+    killed = conn.execute(
+        "SELECT AVG(score) AS a FROM items WHERE status='killed' AND score IS NOT NULL"
+    ).fetchone()["a"]
+    return kept, killed
+
+
+def top_domains_by_reputation(
+    conn: sqlite3.Connection, n: int = 5, min_total: int = 2
+) -> list[tuple[str, float, int, int]]:
+    """(domain, reputation, kept_or_read, killed) for the best-regarded domains."""
+    rows = conn.execute(
+        """
+        SELECT domain, reputation, kept_or_read, killed FROM domain_stats
+        WHERE total >= ? AND reputation IS NOT NULL
+        ORDER BY reputation DESC, total DESC LIMIT ?
+        """,
+        (min_total, n),
+    ).fetchall()
+    return [(r["domain"], r["reputation"], r["kept_or_read"], r["killed"]) for r in rows]
+
+
+def top_domains_by_count(conn: sqlite3.Connection, n: int = 5) -> list[tuple[str, int]]:
+    rows = conn.execute(
+        "SELECT domain, COUNT(*) AS c FROM items GROUP BY domain ORDER BY c DESC LIMIT ?",
+        (n,),
+    ).fetchall()
+    return [(r["domain"], r["c"]) for r in rows]

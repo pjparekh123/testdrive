@@ -12,7 +12,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Status = Literal["queued", "read", "killed", "kept", "archived"]
-AddedVia = Literal["telegram", "cli", "shortcut"]
+AddedVia = Literal["telegram", "cli", "shortcut", "import"]
 
 
 # --- Extraction -------------------------------------------------------------
