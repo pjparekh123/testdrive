@@ -1,95 +1,47 @@
-# 🔮 Chaos Oracle MCP
+# Smart Reading Queue (`rq`)
 
-A mystical — but actually useful — MCP server for getting unstuck. When you don't know what to do next, ask the Oracle.
+A personal triage system for things you save but never read. One tap to save;
+instant one-line pitches; a weekly **"kill or keep?"** digest that keeps the
+queue *shrinking*. Telegram + CLI only (no web UI in v1).
 
-Six tools for lateral thinking, creative unblocking, and perspective shifts. Zero external dependencies. Works with Claude, Cursor, or any MCP-compatible client.
+See [`SPEC.md`](./SPEC.md) for the full design.
 
----
+## Status
 
-## Tools
-
-| Tool | What it does |
-|------|-------------|
-| `consult_oracle` | Ask any question. Get an ancient prophecy + a grounded practical interpretation. |
-| `oblique_strategy` | Draw 1–5 Brian Eno-style cards for breaking creative deadlock. |
-| `flip_perspective` | Invert your problem — what if the bug IS the feature? |
-| `cosmic_coincidence` | Find unexpected connections between two unrelated concepts. |
-| `fortune_for_devs` | Your developer fortune for the current moment. Changes every few minutes. |
-| `random_constraint` | A creative constraint to force lateral thinking. Gentle, moderate, or chaotic. |
-
----
+Built in phases (see §15 of the spec). **Phase 1 complete:** repo skeleton,
+SQLite migrations, config, structured logging, `rq doctor`, and `rq add`
+end-to-end with stub enrichment.
 
 ## Quickstart
 
-### Run directly with npx (no install)
+```bash
+uv sync --extra dev --python 3.12     # install deps into .venv
+cp .env.example .env                   # fill in ANTHROPIC_API_KEY etc.
+uv run rq doctor                       # check config, DB, model access
+uv run rq add https://example.com/some-article
+uv run rq show 1
+```
+
+## Layout
+
+```
+prompts/      LLM prompts as versioned .md files, loaded at startup
+migrations/   append-only numbered SQL migrations
+src/rq/       the single Python app (CLI, bot, scheduler share one core)
+tests/        pytest + vcr.py cassettes (no live API calls in CI)
+evals/        golden.jsonl + harness for prompt-quality regression
+```
+
+## Development
 
 ```bash
-npx chaos-oracle-mcp
+uv run pytest            # run the test suite (replays cassettes)
+uv run rq doctor         # smoke check
 ```
 
-### Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
-```json
-{
-  "mcpServers": {
-    "chaos-oracle": {
-      "command": "npx",
-      "args": ["chaos-oracle-mcp"]
-    }
-  }
-}
-```
-
-### Claude Code (CLI)
-
-```bash
-claude mcp add chaos-oracle -- npx chaos-oracle-mcp
-```
-
-### Cursor / other MCP clients
-
-Point your client at: `npx chaos-oracle-mcp` via stdio transport.
-
----
-
-## Example interactions
-
-**"I'm stuck on a design decision"**
-> Use `consult_oracle` with your question, or `oblique_strategy` with your context.
-
-**"This bug is driving me insane"**
-> Use `flip_perspective` — maybe it's not a bug.
-
-**"I need fresh inspiration"**
-> Use `cosmic_coincidence` with two unrelated things from your world.
-
-**"What should I focus on today?"**
-> Use `fortune_for_devs` with your current mood.
-
-**"I keep solving this the same wrong way"**
-> Use `random_constraint` with your task and `intensity: chaotic`.
-
----
-
-## Philosophy
-
-The Oracle doesn't give you answers. It gives you better questions.
-
-All tools are seeded by the current time, so repeated calls yield different results — but a given call at a given moment is deterministic (useful for sharing a result with a teammate).
-
----
-
-## Local development
-
-```bash
-git clone https://github.com/pjparekh123/testdrive
-cd testdrive
-npm install
-npm run dev   # runs via tsx (no build step)
-npm run build # compile to dist/
-```
+Ground rules: every LLM call goes through `src/rq/llm.py`; Pydantic schemas are
+the contract between modules; prompts live in `prompts/*.md`; migrations are
+append-only.
 
 ## License
 

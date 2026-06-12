@@ -1,0 +1,13 @@
+active:
+  - llm evals and benchmarks
+  - urban planning and housing policy
+  - long-form narrative journalism
+  - systems programming (rust, zig)
+  - cognitive science of attention
+avoid:
+  - crypto price commentary
+  - generic productivity advice
+  - vc twitter drama
+goals_this_quarter:
+  - prep for the talk on agentic eval design
+  - decide if we should move to Tokyo

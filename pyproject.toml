@@ -1,0 +1,47 @@
+[project]
+name = "reading-queue"
+version = "0.1.0"
+description = "Smart Reading Queue — a personal triage system for things you save but never read."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.27",
+    "trafilatura>=1.12",
+    "playwright>=1.47",
+    "anthropic>=0.39",
+    "sentence-transformers>=3.0",
+    "numpy>=1.26",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "python-telegram-bot>=21.0",
+    "apscheduler>=3.10",
+    "structlog>=24.1",
+    "typer>=0.12",
+    "pyyaml>=6.0",
+    "pypdf>=4.3",
+    "youtube-transcript-api>=0.6",
+]
+
+[project.scripts]
+rq = "rq.cli:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "vcrpy>=6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rq"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.uv]
+# uv manages the interpreter; project requires 3.12+ (container ships 3.11).

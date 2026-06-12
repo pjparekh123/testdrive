@@ -1,3 +1,16 @@
-node_modules/
-dist/
-*.js.map
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# App data (never commit)
+rq.db
+rq.db-wal
+rq.db-shm
+.env
+backup/*.sql
+
+# Models / caches
+.cache/
