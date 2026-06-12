@@ -191,6 +191,24 @@ def update_item_score(
     )
 
 
+def kill_candidates(conn: sqlite3.Connection, limit: int = 7) -> list[Item]:
+    """Stale items for the 'kill these?' flow (§7.5): queued, added >14d ago,
+    surfaced at least twice, never opened."""
+    rows = conn.execute(
+        """
+        SELECT * FROM items
+        WHERE status = 'queued'
+          AND added_at < datetime('now', '-14 days')
+          AND surface_count >= 2
+          AND id NOT IN (SELECT item_id FROM events WHERE kind = 'opened')
+        ORDER BY added_at ASC
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    return [row_to_item(r) for r in rows]
+
+
 def recent_kept_titles(conn: sqlite3.Connection, n: int = 20) -> list[str]:
     """Titles of the last ``n`` kept/read items, for novelty comparison (§8.3)."""
     rows = conn.execute(

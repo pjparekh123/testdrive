@@ -293,6 +293,20 @@ def score(
 
 
 @app.command()
+def bot():
+    """Run the Telegram bot in the foreground (long-polling)."""
+    s = _boot()
+    if not s.telegram_bot_token:
+        typer.echo("TELEGRAM_BOT_TOKEN not set — see .env.example / README.")
+        raise typer.Exit(1)
+    if not s.allowed_user_ids:
+        typer.echo("⚠️  TELEGRAM_ALLOWED_USER_IDS is empty — the bot will ignore everyone.")
+    from . import bot as bot_module
+
+    bot_module.run()
+
+
+@app.command()
 def digest(dry_run: bool = typer.Option(False, "--dry-run")):
     """Generate (and send) the weekly digest (Phase 5)."""
     _todo("Phase 5")

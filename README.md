@@ -8,9 +8,10 @@ See [`SPEC.md`](./SPEC.md) for the full design.
 
 ## Status
 
-Built in phases (see §15 of the spec). **Phase 1 complete:** repo skeleton,
-SQLite migrations, config, structured logging, `rq doctor`, and `rq add`
-end-to-end with stub enrichment.
+Built in phases (see §15 of the spec). **Phases 1–4 complete:** repo skeleton +
+migrations + config + logging + `rq doctor` (1); real LLM enrichment via the
+single wrapper (2); scoring system + domain reputation + `rq eval` harness (3);
+Telegram bot with the kill/keep loop (4).
 
 ## Quickstart
 
@@ -31,6 +32,26 @@ src/rq/       the single Python app (CLI, bot, scheduler share one core)
 tests/        pytest + vcr.py cassettes (no live API calls in CI)
 evals/        golden.jsonl + harness for prompt-quality regression
 ```
+
+## Telegram bot
+
+Drop the bot any URL from your phone and it saves it with a one-line pitch and
+`[open] [snooze] [kill] [read]` buttons.
+
+**Setup**
+
+1. **Create the bot.** In Telegram, message [@BotFather](https://t.me/BotFather),
+   send `/newbot`, and follow the prompts. It returns a token like
+   `123456789:AAE…`. Put it in `.env` as `TELEGRAM_BOT_TOKEN`.
+2. **Find your user id.** Message [@userinfobot](https://t.me/userinfobot) (or
+   `@RawDataBot`) and copy the numeric `Id`. Put it in `.env` as
+   `TELEGRAM_ALLOWED_USER_IDS` (comma-separated for multiple people). The bot
+   **silently ignores** anyone not on this list.
+3. **Run it.** `uv run rq bot` (foreground, long-polling). `rq doctor` will show
+   whether the token and allowed-user ids are set.
+
+Commands: `/start` `/help` `/add <url>` `/queue` `/stats` `/digest_now`
+`/kill_old`. Any message containing one or more URLs is treated as an add.
 
 ## Development
 
