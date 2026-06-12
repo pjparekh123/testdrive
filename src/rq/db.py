@@ -163,6 +163,16 @@ def list_items(
     return [row_to_item(r) for r in rows]
 
 
+def recent_kept_titles(conn: sqlite3.Connection, n: int = 20) -> list[str]:
+    """Titles of the last ``n`` kept/read items, for novelty comparison (§8.3)."""
+    rows = conn.execute(
+        "SELECT title FROM items WHERE status IN ('kept','read') AND title IS NOT NULL "
+        "ORDER BY added_at DESC LIMIT ?",
+        (n,),
+    ).fetchall()
+    return [r["title"] for r in rows]
+
+
 def insert_item(
     conn: sqlite3.Connection, item: Item, embedding: bytes | None = None
 ) -> int:

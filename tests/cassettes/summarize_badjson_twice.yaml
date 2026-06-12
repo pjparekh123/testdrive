@@ -1,0 +1,40 @@
+interactions:
+- request:
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+    body: x
+    headers:
+      content-type:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+    body:
+      string: '{"id": "msg_test_0001", "type": "message", "role": "assistant", "model":
+        "claude-haiku-4-5-20251001", "content": [{"type": "text", "text": "Sure! Here
+        is your summary."}], "stop_reason": "end_turn", "stop_sequence": null, "usage":
+        {"input_tokens": 140, "output_tokens": 70}}'
+- request:
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+    body: x
+    headers:
+      content-type:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+    body:
+      string: '{"id": "msg_test_0001", "type": "message", "role": "assistant", "model":
+        "claude-haiku-4-5-20251001", "content": [{"type": "text", "text": "Still not
+        JSON, sorry."}], "stop_reason": "end_turn", "stop_sequence": null, "usage":
+        {"input_tokens": 140, "output_tokens": 70}}'
+version: 1

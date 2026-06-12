@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 from pathlib import Path
 
 import typer
@@ -92,11 +91,51 @@ def show(key: str = typer.Argument(..., help="Item id or URL")):
     if item is None:
         typer.echo(f"not found: {key}")
         raise typer.Exit(1)
-    d = item.model_dump()
-    raw = d.pop("raw_text", None)
-    typer.echo(json.dumps(d, indent=2, default=str))
-    if raw:
-        typer.echo(f"\n--- raw_text ({len(raw)} chars) ---\n{raw[:1000]}")
+    _print_record(item)
+
+
+def _print_record(item: Item) -> None:
+    def row(label: str, value) -> None:
+        if value is None or value == "" or value == []:
+            return
+        typer.echo(f"  {label:<14} {value}")
+
+    score = f"{item.score}" if item.score is not None else "— (Phase 3)"
+    typer.echo(f"\n#{item.id}  [{item.status}]  score {score}")
+    typer.echo("─" * 60)
+    row("title", item.title)
+    row("pitch", f"“{item.pitch}”" if item.pitch else None)
+    row("tldr", item.tldr)
+    row("tags", ", ".join(item.tags) if item.tags else None)
+    row("url", item.canonical_url or item.url)
+    row("domain", item.domain)
+    row("author", item.author)
+    row("published", item.published_at)
+    wc = f"{item.word_count} words · ~{item.read_minutes} min" if item.word_count else None
+    row("length", wc)
+    row("added", item.added_at)
+    row("added_via", item.added_via)
+
+    if item.summary:
+        typer.echo("\n  summary")
+        for ln in _wrap(item.summary, 70):
+            typer.echo(f"    {ln}")
+
+    if item.score_breakdown:
+        typer.echo("\n  score components (raw LLM, pre-weighting)")
+        for name, comp in item.score_breakdown.items():
+            if isinstance(comp, dict) and "score" in comp:
+                typer.echo(f"    {name:<15} {comp['score']}/10 — {comp.get('reason','')}")
+
+    if item.raw_text:
+        typer.echo(f"\n  raw_text       {len(item.raw_text)} chars (first 300):")
+        typer.echo(f"    {item.raw_text[:300].strip()}…")
+
+
+def _wrap(text: str, width: int) -> list[str]:
+    import textwrap
+
+    return textwrap.wrap(text, width=width)
 
 
 # --- status mutations -------------------------------------------------------

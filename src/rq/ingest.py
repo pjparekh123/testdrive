@@ -1,16 +1,17 @@
 """Ingestion (§7.1): end-to-end add_url — dedupe -> fetch -> enrich -> store.
 
-Phase 1 uses stub enrichment (no LLM). Every step writes an event; no silent
-drops.
+Real enrichment (Phase 2): three LLM passes + local embedding. The final score
+is left to Phase 3 — we store the raw LLM score components in
+``score_breakdown_json`` and leave ``score`` NULL for now.
 """
 
 from __future__ import annotations
 
 import sqlite3
 
-from . import db
-from .config import get_settings
-from .enrich import stub_enrich
+from . import db, score as scoring
+from .config import get_settings, load_interests
+from .enrich import enrich
 from .fetch import canonicalize_url, domain_of, fetch_and_extract
 from .logging import get_logger
 from .schemas import Item
@@ -60,20 +61,44 @@ async def add_url(url: str, source: str = "cli", conn: sqlite3.Connection | None
         added_via=source if source in ("telegram", "cli", "shortcut") else "cli",
     )
 
-    # 3. Stub enrichment (Phase 1). Real LLM passes land in Phase 2.
-    item = stub_enrich(item, page)
+    # 3. Real enrichment (3 LLM passes + embedding). Only attempted when we have
+    #    article text. Failures leave the row queued + unenriched (no crash).
+    embedding_blob: bytes | None = None
+    enriched = False
+    if fetched_ok:
+        try:
+            interests = load_interests()
+            recent = db.recent_kept_titles(conn)
+            result = await enrich(page, interests, recent)
+            item.summary = result.summary
+            item.tldr = result.tldr
+            item.tags = result.tags
+            item.pitch = result.pitch
+            # Store raw LLM components now; final 0–100 score is Phase 3.
+            item.score_breakdown = result.score_components.model_dump()
+            item.score = None
+            if result.embedding is not None:
+                embedding_blob = scoring.embedding_to_blob(result.embedding)
+            enriched = True
+        except Exception as e:
+            log.warning("ingest.enrich_failed", url=canonical, error=str(e)[:300])
 
-    # 4. Store atomically + emit the `added` event.
+    # 4. Store atomically + emit events.
     try:
         with conn:
-            item_id = db.insert_item(conn, item)
+            item_id = db.insert_item(conn, item, embedding=embedding_blob)
             db.emit_event(conn, item_id, "added", {"via": source})
+            if enriched:
+                db.emit_event(conn, item_id, "enriched", {"tags": item.tags})
         item.id = item_id
     finally:
         if owns_conn:
             conn.close()
 
-    log.info("ingest.added", url=canonical, item_id=item.id, words=page.word_count, ok=fetched_ok)
+    log.info(
+        "ingest.added", url=canonical, item_id=item.id, words=page.word_count,
+        fetched=fetched_ok, enriched=enriched,
+    )
     return item
 
 

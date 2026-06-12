@@ -1,11 +1,17 @@
 """The one LLM wrapper. Every LLM call in the codebase goes through here.
 
-Responsibilities (§5 hard requirement):
-  * retries — JSON-parse failure (1 stricter-nudge retry) and rate-limit/5xx
-    backoff (2s, 8s, 30s; max 3 tries)
-  * JSON parsing + Pydantic validation against a ``response_model``
-  * structured logging (model, latency, tokens, cost, attempt)
-  * cost tracking with a hard monthly cap (§18)
+Single entrypoint::
+
+    await call(prompt_name, variables, response_model, model) -> response_model
+
+Responsibilities (§5 hard requirement, §13 failure modes):
+  * load ``prompts/{prompt_name}.md`` and format it with ``variables``
+  * call the Anthropic SDK, parse JSON, validate against ``response_model``
+  * on JSON/schema failure: retry once with an appended stricter nudge, then
+    hard-fail (``LLMError``)
+  * on rate-limit / 5xx: exponential backoff 2s, 8s, 30s; max 3 tries
+  * log every call: prompt name, model, latency, input/output tokens, cost
+  * track cost against a hard monthly cap (§18)
 
 No raw Anthropic SDK calls live anywhere else.
 """
@@ -21,27 +27,26 @@ from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
 
-from .config import Settings, get_settings
+from . import prompts as prompt_lib
+from .config import get_settings
 from .logging import get_logger
 
 log = get_logger("llm")
 
 T = TypeVar("T", bound=BaseModel)
 
-# Approximate prices in USD per 1M tokens (input, output). Configurable; used
-# only for the cost ledger / monthly cap — not billed against.
+# Approximate USD per 1M tokens (input, output). Used for the cost ledger only.
 _PRICING: dict[str, tuple[float, float]] = {
     "claude-sonnet-4-6": (3.00, 15.00),
     "claude-haiku-4-5-20251001": (1.00, 5.00),
 }
 
 _RETRYABLE_STATUS = {429, 500, 502, 503, 504, 529}
-_BACKOFF_SCHEDULE = (2.0, 8.0, 30.0)
+_BACKOFF_SCHEDULE = (2.0, 8.0, 30.0)  # §13: 2s, 8s, 30s; max 3 tries
 _JSON_NUDGE = (
     "Your previous output was not valid JSON. Return only the JSON object, "
     "with no prose and no markdown fences."
 )
-
 _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.DOTALL)
 
 
@@ -50,17 +55,13 @@ class LLMError(RuntimeError):
 
 
 class CostCapExceeded(LLMError):
-    """Raised when an enrichment would push spend over the monthly cap."""
+    """Raised when a call would push spend over the monthly cap."""
+
+
+# --- cost tracking ----------------------------------------------------------
 
 
 class CostTracker:
-    """In-process running tally of LLM spend for the current month.
-
-    A personal-scale ledger: the digest/enrichment paths consult ``would_exceed``
-    before spending and ``record`` after. Persisted spend can be layered on later
-    (Day 6); for now this guards a single long-running process.
-    """
-
     def __init__(self, cap_usd: float) -> None:
         self.cap_usd = cap_usd
         self.spent_usd = 0.0
@@ -84,10 +85,12 @@ def _cost_tracker() -> CostTracker:
 
 
 @lru_cache(maxsize=1)
-def _client():  # pragma: no cover - thin SDK construction
+def _client():
     from anthropic import AsyncAnthropic
 
-    return AsyncAnthropic(api_key=get_settings().anthropic_api_key)
+    # max_retries=0: this wrapper owns retry/backoff so behaviour is explicit
+    # and deterministic under VCR.
+    return AsyncAnthropic(api_key=get_settings().anthropic_api_key, max_retries=0)
 
 
 def _extract_json(text: str) -> dict:
@@ -97,87 +100,82 @@ def _extract_json(text: str) -> dict:
     if m:
         candidate = m.group(1).strip()
     if not candidate.startswith("{"):
-        start = candidate.find("{")
-        end = candidate.rfind("}")
-        if start != -1 and end != -1 and end > start:
+        start, end = candidate.find("{"), candidate.rfind("}")
+        if start != -1 and end > start:
             candidate = candidate[start : end + 1]
     return json.loads(candidate)
 
 
-async def complete(
-    *,
-    prompt: str,
+# --- the entrypoint ---------------------------------------------------------
+
+
+async def call(
+    prompt_name: str,
+    variables: dict,
     response_model: type[T],
     model: str,
+    *,
     max_tokens: int = 1024,
     temperature: float = 0.2,
-    settings: Settings | None = None,
 ) -> T:
-    """Run one LLM call and return a validated ``response_model`` instance.
-
-    Raises ``LLMError`` if the model never returns valid, schema-conforming JSON,
-    or ``CostCapExceeded`` if the monthly cap is already hit.
-    """
-    s = settings or get_settings()
+    """Run one prompt and return a validated ``response_model`` instance."""
     tracker = _cost_tracker()
     if tracker.would_exceed():
         raise CostCapExceeded(
             f"monthly cost cap ${tracker.cap_usd:.2f} reached "
-            f"(spent ${tracker.spent_usd:.4f}); enrichment queued"
+            f"(spent ${tracker.spent_usd:.4f})"
         )
 
-    client = _client()
+    prompt = prompt_lib.load_and_render(prompt_name, **variables)
     messages = [{"role": "user", "content": prompt}]
     last_err: Exception | None = None
 
-    # JSON-validity retry loop (max 2 attempts: original + 1 stricter nudge).
+    # JSON/schema-validity retry loop: original attempt + 1 stricter-nudge retry.
     for json_attempt in range(2):
-        text, usage = await _call_with_backoff(
-            client, model=model, messages=messages, max_tokens=max_tokens,
-            temperature=temperature,
+        text, usage, latency_ms = await _request_with_backoff(
+            model=model, messages=messages, max_tokens=max_tokens, temperature=temperature
         )
         cost = tracker.record(model, usage[0], usage[1])
+        log.info(
+            "llm.call",
+            prompt=prompt_name,
+            model=model,
+            schema=response_model.__name__,
+            latency_ms=latency_ms,
+            input_tokens=usage[0],
+            output_tokens=usage[1],
+            cost_usd=round(cost, 6),
+            json_attempt=json_attempt,
+        )
         try:
-            data = _extract_json(text)
-            obj = response_model.model_validate(data)
-            log.info(
-                "llm.ok",
-                model=model,
-                schema=response_model.__name__,
-                in_tokens=usage[0],
-                out_tokens=usage[1],
-                cost_usd=round(cost, 6),
-                json_attempt=json_attempt,
-            )
-            return obj
+            return response_model.model_validate(_extract_json(text))
         except (json.JSONDecodeError, ValidationError) as e:
             last_err = e
             log.warning(
-                "llm.bad_json",
+                "llm.bad_output",
+                prompt=prompt_name,
                 model=model,
-                schema=response_model.__name__,
                 json_attempt=json_attempt,
                 error=str(e)[:200],
             )
-            # Feed the model its own output + a stricter nudge, then retry once.
             messages = messages + [
                 {"role": "assistant", "content": text},
                 {"role": "user", "content": _JSON_NUDGE},
             ]
 
     raise LLMError(
-        f"{response_model.__name__}: model did not return valid JSON after retry: "
-        f"{last_err}"
+        f"{prompt_name}/{response_model.__name__}: invalid output after retry: {last_err}"
     )
 
 
-async def _call_with_backoff(
-    client, *, model: str, messages: list, max_tokens: int, temperature: float
-) -> tuple[str, tuple[int, int]]:
-    """Single logical request with rate-limit/5xx backoff. Returns (text,
-    (in_tokens, out_tokens))."""
-    from anthropic import APIStatusError, APIConnectionError, RateLimitError
+async def _request_with_backoff(
+    *, model: str, messages: list, max_tokens: int, temperature: float
+) -> tuple[str, tuple[int, int], int]:
+    """One logical request with rate-limit/5xx backoff. Returns
+    (text, (input_tokens, output_tokens), latency_ms)."""
+    from anthropic import APIConnectionError, APIStatusError, RateLimitError
 
+    client = _client()
     last_err: Exception | None = None
     for attempt in range(len(_BACKOFF_SCHEDULE) + 1):
         t0 = time.monotonic()
@@ -189,14 +187,13 @@ async def _call_with_backoff(
                 messages=messages,
             )
             text = "".join(
-                block.text for block in resp.content if getattr(block, "type", None) == "text"
+                b.text for b in resp.content if getattr(b, "type", None) == "text"
             )
             usage = (
                 getattr(resp.usage, "input_tokens", 0),
                 getattr(resp.usage, "output_tokens", 0),
             )
-            log.info("llm.call", model=model, latency_ms=round((time.monotonic() - t0) * 1000))
-            return text, usage
+            return text, usage, round((time.monotonic() - t0) * 1000)
         except (RateLimitError, APIConnectionError) as e:
             last_err = e
             status = getattr(e, "status_code", 429)

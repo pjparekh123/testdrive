@@ -17,7 +17,6 @@ def test_extracted_page_defaults():
     p = ExtractedPage(title="T", text="hello world", word_count=2)
     assert p.author is None
     assert p.paywalled is False
-    assert p.needs_review is False
 
 
 def test_summarize_output_tag_bounds():

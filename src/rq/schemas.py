@@ -19,7 +19,7 @@ AddedVia = Literal["telegram", "cli", "shortcut"]
 
 
 class ExtractedPage(BaseModel):
-    """Output of fetch.fetch_and_extract."""
+    """Output of fetch.fetch_and_extract (§9)."""
 
     title: str
     author: str | None = None
@@ -27,7 +27,6 @@ class ExtractedPage(BaseModel):
     text: str
     word_count: int
     paywalled: bool = False
-    needs_review: bool = False
 
 
 # --- LLM outputs ------------------------------------------------------------

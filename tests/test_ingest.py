@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 from rq import ingest
+from rq.enrich import EnrichmentResult
 from rq.fetch import canonicalize_url, domain_of
-from rq.schemas import ExtractedPage
+from rq.schemas import ExtractedPage, ScoreOutput
 
 
 # --- URL normalization (pure) ----------------------------------------------
@@ -62,8 +64,32 @@ def _fake_page(words: int = 300):
     return _fetch
 
 
-async def test_add_url_stores_row_with_raw_text(conn, monkeypatch):
+def _fake_enrichment():
+    components = ScoreOutput.model_validate(
+        {
+            "topic_match": {"score": 7, "reason": "matches"},
+            "recency_value": {"score": 4, "reason": "evergreen"},
+            "effort_payoff": {"score": 8, "reason": "short"},
+            "surprise": {"score": 5, "reason": "mild"},
+        }
+    )
+
+    async def _enrich(page, interests, recent_kept_titles):
+        return EnrichmentResult(
+            summary="A dense, concrete summary.",
+            tldr="One neutral sentence.",
+            tags=["shipping", "logistics"],
+            pitch="Maps every container ship lost at sea in 2023; the pattern surprised me.",
+            score_components=components,
+            embedding=np.ones(384, dtype=np.float32),
+        )
+
+    return _enrich
+
+
+async def test_add_url_stores_enriched_row(conn, monkeypatch):
     monkeypatch.setattr(ingest, "fetch_and_extract", _fake_page(300))
+    monkeypatch.setattr(ingest, "enrich", _fake_enrichment())
 
     item = await ingest.add_url(
         "https://blog.example.com/ships?utm_source=x", source="cli", conn=conn
@@ -73,27 +99,34 @@ async def test_add_url_stores_row_with_raw_text(conn, monkeypatch):
     assert item.raw_text and item.word_count == 300
     assert item.read_minutes == pytest.approx(300 / 230, abs=0.01)
     assert item.canonical_url == "https://blog.example.com/ships"
-    assert item.domain == "blog.example.com"
     assert item.status == "queued"
-    # Phase 1 stub enrichment values.
-    assert item.summary == "[stub]"
-    assert item.pitch == "[stub]"
-    assert item.score == 0
 
-    # Exactly one event in Phase 1: `added`.
+    # Real enrichment fields populated; final score deferred to Phase 3.
+    assert item.summary == "A dense, concrete summary."
+    assert item.tldr == "One neutral sentence."
+    assert item.tags == ["shipping", "logistics"]
+    assert item.pitch.startswith("Maps every container ship")
+    assert item.score is None
+    assert item.score_breakdown["topic_match"]["score"] == 7
+
+    # Embedding persisted as a 384-d float32 blob.
+    row = conn.execute(
+        "SELECT embedding, score, score_breakdown_json FROM items WHERE id=?", (item.id,)
+    ).fetchone()
+    assert row["embedding"] is not None and len(row["embedding"]) == 384 * 4
+    assert row["score"] is None and row["score_breakdown_json"]
+
+    # Phase 2 emits `added` + `enriched`.
     kinds = [
         r["kind"]
-        for r in conn.execute("SELECT kind FROM events WHERE item_id=?", (item.id,))
+        for r in conn.execute("SELECT kind FROM events WHERE item_id=? ORDER BY id", (item.id,))
     ]
-    assert kinds == ["added"]
-
-    # Persisted row really holds the raw text.
-    row = conn.execute("SELECT raw_text, summary, score FROM items WHERE id=?", (item.id,)).fetchone()
-    assert row["raw_text"] and row["summary"] == "[stub]" and row["score"] == 0
+    assert kinds == ["added", "enriched"]
 
 
 async def test_add_url_dedupes_without_resetting_surface_count(conn, monkeypatch):
     monkeypatch.setattr(ingest, "fetch_and_extract", _fake_page(300))
+    monkeypatch.setattr(ingest, "enrich", _fake_enrichment())
 
     first = await ingest.add_url("https://a.com/p", conn=conn)
     # Simulate the item having been surfaced twice already.

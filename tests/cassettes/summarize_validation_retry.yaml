@@ -1,0 +1,48 @@
+interactions:
+- request:
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+    body: x
+    headers:
+      content-type:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+    body:
+      string: '{"id": "msg_test_0001", "type": "message", "role": "assistant", "model":
+        "claude-haiku-4-5-20251001", "content": [{"type": "text", "text": "{\"tldr\":
+        \"x\", \"summary\": \"y\", \"tags\": []}"}], "stop_reason": "end_turn", "stop_sequence":
+        null, "usage": {"input_tokens": 140, "output_tokens": 70}}'
+- request:
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+    body: x
+    headers:
+      content-type:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+    body:
+      string: '{"id": "msg_test_0001", "type": "message", "role": "assistant", "model":
+        "claude-haiku-4-5-20251001", "content": [{"type": "text", "text": "{\"tldr\":
+        \"Container ships move ~80% of goods, but engineers say gigantism has hit
+        practical limits.\", \"summary\": \"Container ships have grown past four football
+        fields long, stacking containers twenty-four rows wide. Ports were never built
+        for this scale, and a single grounding can block a canal for weeks. A new
+        camp of naval architects favors fleets of smaller autonomous vessels calling
+        at minor ports, cutting delivery variance. Any shift is slowed by inertia,
+        since giant tonnage already ordered will sail for twenty-five years.\", \"tags\":
+        [\"shipping\", \"logistics\", \"infrastructure\", \"autonomous-vessels\"]}"}],
+        "stop_reason": "end_turn", "stop_sequence": null, "usage": {"input_tokens":
+        140, "output_tokens": 70}}'
+version: 1
