@@ -40,7 +40,7 @@ async def add_url(url: str, source: str = "cli", conn: sqlite3.Connection | None
             conn.close()
         return existing
 
-    # 2. Fetch + extract.
+    # 2. Fetch + extract (httpx + trafilatura; no Playwright fallback yet).
     page = await fetch_and_extract(canonical)
     fetched_ok = bool(page.text) and page.word_count > 0
     read_minutes = round(page.word_count / WORDS_PER_MINUTE, 2) if page.word_count else None
@@ -63,21 +63,11 @@ async def add_url(url: str, source: str = "cli", conn: sqlite3.Connection | None
     # 3. Stub enrichment (Phase 1). Real LLM passes land in Phase 2.
     item = stub_enrich(item, page)
 
-    # 4. Store atomically + emit the lifecycle events.
+    # 4. Store atomically + emit the `added` event.
     try:
         with conn:
             item_id = db.insert_item(conn, item)
             db.emit_event(conn, item_id, "added", {"via": source})
-            if fetched_ok:
-                db.emit_event(conn, item_id, "fetched", {"word_count": page.word_count})
-            else:
-                db.emit_event(
-                    conn,
-                    item_id,
-                    "error",
-                    {"stage": "fetch", "needs_review": page.needs_review, "paywalled": page.paywalled},
-                )
-            db.emit_event(conn, item_id, "enriched", {"stub": True})
         item.id = item_id
     finally:
         if owns_conn:

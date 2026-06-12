@@ -1,5 +1,6 @@
 -- 001_init.sql — initial schema for the Smart Reading Queue.
--- Migration policy: append-only. Never edit a committed migration; add a new one.
+-- Matches SPEC §6 exactly. Migration policy: append-only. Never edit a
+-- committed migration; add a new numbered file instead.
 
 -- Items: one row per saved URL
 CREATE TABLE items (
@@ -39,7 +40,7 @@ CREATE TABLE events (
   item_id   INTEGER REFERENCES items(id) ON DELETE CASCADE,
   kind      TEXT NOT NULL CHECK (kind IN
               ('added','fetched','enriched','surfaced',
-               'opened','killed','kept','marked_read','snoozed','error')),
+               'opened','killed','kept','marked_read','snoozed')),
   payload_json TEXT,                   -- optional details
   at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

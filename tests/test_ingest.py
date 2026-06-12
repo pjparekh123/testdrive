@@ -13,16 +13,33 @@ from rq.schemas import ExtractedPage
 @pytest.mark.parametrize(
     "raw,expected",
     [
+        # utm params stripped, real query kept
         ("https://a.com/p?utm_source=twitter&id=5", "https://a.com/p?id=5"),
+        ("https://a.com/p?utm_medium=x&utm_campaign=y", "https://a.com/p"),
+        # fbclid / gclid stripped
         ("https://a.com/p?fbclid=abc", "https://a.com/p"),
         ("https://a.com/p?gclid=xyz&q=1", "https://a.com/p?q=1"),
+        # trailing slash removed (but bare-root slash preserved)
         ("https://a.com/path/", "https://a.com/path"),
         ("https://a.com/", "https://a.com/"),
-        ("https://a.com/p?utm_medium=x&utm_campaign=y", "https://a.com/p"),
+        # fragment identifiers dropped
+        ("https://a.com/p#section-2", "https://a.com/p"),
+        ("https://a.com/p?id=5#frag", "https://a.com/p?id=5"),
+        ("https://a.com/path/#top", "https://a.com/path"),
+        # already-canonical URLs are unchanged (idempotent)
+        ("https://a.com/p?id=5", "https://a.com/p?id=5"),
+        ("https://a.com/clean-path", "https://a.com/clean-path"),
+        # combined: utm + fbclid + trailing slash + fragment
+        ("https://a.com/p/?utm_source=x&fbclid=y&q=1#go", "https://a.com/p?q=1"),
     ],
 )
 def test_canonicalize_url(raw, expected):
     assert canonicalize_url(raw) == expected
+
+
+def test_canonicalize_is_idempotent():
+    once = canonicalize_url("https://a.com/p/?utm_source=x#frag")
+    assert canonicalize_url(once) == once
 
 
 def test_domain_of_strips_www():
@@ -58,12 +75,21 @@ async def test_add_url_stores_row_with_raw_text(conn, monkeypatch):
     assert item.canonical_url == "https://blog.example.com/ships"
     assert item.domain == "blog.example.com"
     assert item.status == "queued"
+    # Phase 1 stub enrichment values.
+    assert item.summary == "[stub]"
+    assert item.pitch == "[stub]"
+    assert item.score == 0
 
-    kinds = {
+    # Exactly one event in Phase 1: `added`.
+    kinds = [
         r["kind"]
         for r in conn.execute("SELECT kind FROM events WHERE item_id=?", (item.id,))
-    }
-    assert {"added", "fetched", "enriched"} <= kinds
+    ]
+    assert kinds == ["added"]
+
+    # Persisted row really holds the raw text.
+    row = conn.execute("SELECT raw_text, summary, score FROM items WHERE id=?", (item.id,)).fetchone()
+    assert row["raw_text"] and row["summary"] == "[stub]" and row["score"] == 0
 
 
 async def test_add_url_dedupes_without_resetting_surface_count(conn, monkeypatch):
@@ -88,15 +114,16 @@ async def test_add_url_dedupes_without_resetting_surface_count(conn, monkeypatch
 
 async def test_add_url_fetch_failure_still_stores_queued(conn, monkeypatch):
     async def _empty(url: str) -> ExtractedPage:
-        return ExtractedPage(title=url, text="", word_count=0, needs_review=True)
+        return ExtractedPage(title=url, text="", word_count=0)
 
     monkeypatch.setattr(ingest, "fetch_and_extract", _empty)
 
     item = await ingest.add_url("https://broken.example.com/x", conn=conn)
     assert item.status == "queued"
     assert item.raw_text is None
-    kinds = {
+    assert item.fetched_at is None
+    kinds = [
         r["kind"]
         for r in conn.execute("SELECT kind FROM events WHERE item_id=?", (item.id,))
-    }
-    assert "error" in kinds
+    ]
+    assert kinds == ["added"]

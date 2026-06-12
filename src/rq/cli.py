@@ -193,63 +193,58 @@ def eval_cmd():
 
 @app.command()
 def doctor():
-    """Check config, secrets, DB, model access. Run this first when weird."""
+    """Checklist: config valid, DB exists + migrations current, API key present.
+
+    Does NOT call the Anthropic API. Run this first when anything's weird.
+    """
     s = _boot()
     ok = True
 
-    def line(label: str, good: bool, detail: str = "", critical: bool = True):
+    def line(label: str, good: bool, detail: str = ""):
         nonlocal ok
-        mark = "✅" if good else ("❌" if critical else "⚠️")
-        if not good and critical:
+        if not good:
             ok = False
-        typer.echo(f" {mark} {label}{(' — ' + detail) if detail else ''}")
+        typer.echo(f" {'✅' if good else '❌'} {label}{(' — ' + detail) if detail else ''}")
 
     typer.echo("rq doctor\n=========")
 
-    # secrets / config (env-dependent — warnings, not hard failures)
-    line("ANTHROPIC_API_KEY set", bool(s.anthropic_api_key), "" if s.anthropic_api_key else "missing (LLM passes will fail)", critical=False)
-    line("TELEGRAM_BOT_TOKEN set", bool(s.telegram_bot_token), "" if s.telegram_bot_token else "missing (bot disabled)", critical=False)
-    line("TELEGRAM_ALLOWED_USER_IDS", bool(s.allowed_user_ids), f"{len(s.allowed_user_ids)} id(s)", critical=False)
+    # 1. config valid (settings load + interests.yaml + prompts present)
+    try:
+        interests = load_interests()
+        prompts = set(available_prompts())
+        needed = {"summarize", "pitch", "score_components"}
+        missing = needed - prompts
+        if missing:
+            line("config valid", False, f"missing prompts: {', '.join(sorted(missing))}")
+        else:
+            line(
+                "config valid",
+                True,
+                f"db_path={s.db_path}, {len(interests.active)} interests, {len(prompts)} prompts",
+            )
+    except Exception as e:
+        line("config valid", False, str(e))
 
-    # db + schema
+    # 2. database exists
+    db_exists = s.db_path.exists()
+    line("database exists", db_exists, str(s.db_path) if db_exists else f"{s.db_path} not found (run `rq add` to create)")
+
+    # 3. migrations current
     try:
         conn = db.connect(s.db_path)
         cur, req, current = db.check_schema(conn, s.migrations_dir)
-        if cur < req:
-            db.migrate(conn, s.migrations_dir)
-            cur, req, current = db.check_schema(conn, s.migrations_dir)
-        n = conn.execute("SELECT COUNT(*) AS c FROM items").fetchone()["c"]
         conn.close()
-        line("DB reachable + schema current", current, f"version {cur}/{req}, {n} item(s)")
+        if db_exists:
+            line("migrations current", current, f"schema v{cur}/{req}")
+        else:
+            line("migrations current", True, f"will apply v1..{req} on first run")
     except Exception as e:
-        line("DB reachable + schema current", False, str(e))
+        line("migrations current", False, str(e))
 
-    # prompts
-    prompts = available_prompts()
-    needed = {"summarize", "pitch", "score_components"}
-    line("prompts present", needed.issubset(set(prompts)), ", ".join(sorted(prompts)))
+    # 4. ANTHROPIC_API_KEY present (presence only — no API call)
+    line("ANTHROPIC_API_KEY present", bool(s.anthropic_api_key), "" if s.anthropic_api_key else "missing")
 
-    # interests
-    try:
-        interests = load_interests()
-        line("interests.yaml parses", True, f"{len(interests.active)} active, {len(interests.avoid)} avoid")
-    except Exception as e:
-        line("interests.yaml parses", False, str(e))
-
-    # optional runtime deps
-    try:
-        import sentence_transformers  # noqa: F401
-        line("embedding model importable", True, "all-MiniLM-L6-v2 (downloads on first use)")
-    except ImportError:
-        line("embedding model importable", False, "sentence-transformers missing")
-
-    try:
-        import playwright  # noqa: F401
-        line("playwright importable", True, "fallback extraction available")
-    except ImportError:
-        line("playwright importable", False, "fallback disabled (non-fatal)", critical=False)
-
-    typer.echo("\n" + ("all good ✅" if ok else "issues found ❌"))
+    typer.echo("\n" + ("all checks passed ✅" if ok else "issues found ❌"))
     raise typer.Exit(0 if ok else 1)
 
 

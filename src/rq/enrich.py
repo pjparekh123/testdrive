@@ -16,24 +16,20 @@ from .schemas import ExtractedPage, Item
 log = get_logger("enrich")
 
 
+STUB = "[stub]"
+
+
 def stub_enrich(item: Item, page: ExtractedPage) -> Item:
-    """Fill enrichment fields with cheap, deterministic placeholders (no LLM).
+    """Fill enrichment fields with fixed placeholders (no LLM call).
 
-    Used in Phase 1 so the end-to-end ``add`` path is exercisable without an API
-    key. Real summaries/pitch/score arrive in Phase 2.
+    Phase 1 only: real summaries/pitch/score arrive in Phase 2. Values are the
+    literal markers requested in the build plan so stubbed rows are obvious.
     """
-    text = page.text or ""
-    first_sentence = text.strip().split(".")[0][:240] if text else ""
-
-    item.tldr = (first_sentence or item.title or item.url)[:300]
-    item.summary = None
-    item.pitch = (
-        "Paywalled — open original if you have access."
-        if page.paywalled
-        else None
-    )
+    item.tldr = STUB
+    item.summary = STUB
+    item.pitch = STUB
     item.tags = []
-    item.score = None
+    item.score = 0
     item.score_breakdown = None
     item.status = "queued"
     return item
