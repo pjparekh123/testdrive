@@ -324,13 +324,21 @@ def build_application(token: str | None = None, post_init=None) -> Application:
     return app
 
 
+async def _post_init(application) -> None:
+    """Start the digest scheduler and the /health server in the bot's loop."""
+    from .health import start_health_server
+    from .scheduler import on_post_init as start_scheduler
+
+    await start_scheduler(application)
+    s = get_settings()
+    application.bot_data["health_server"] = await start_health_server(port=s.health_port)
+
+
 def run() -> None:
     """Run the bot in the foreground (long-polling), with the weekly-digest
-    scheduler started in the same event loop."""
-    from .scheduler import on_post_init
-
+    scheduler and the /health endpoint started in the same event loop."""
     s = get_settings()
     configure_logging(s.log_level)
     log.info("bot.start", allowed_users=len(s.allowed_user_ids))
-    app = build_application(post_init=on_post_init)
+    app = build_application(post_init=_post_init)
     app.run_polling()

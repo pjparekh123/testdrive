@@ -8,12 +8,14 @@ See [`SPEC.md`](./SPEC.md) for the full design.
 
 ## Status
 
-Built in phases (see §15 of the spec). **Phases 1–6 complete:** repo skeleton +
+Built in phases (see §15 of the spec). **Phases 1–7 complete:** repo skeleton +
 migrations + config + logging + `rq doctor` (1); real LLM enrichment via the
 single wrapper (2); scoring system + domain reputation + `rq eval` harness (3);
 Telegram bot with the kill/keep loop (4); weekly digest composer + in-process
 scheduler (5); interest-drift suggestions, Pocket/Instapaper import, monthly
-cost cap, `rq stats`, and nightly backups (6).
+cost cap, `rq stats`, and nightly backups (6); Fly.io deploy + `/health` +
+pitch-review harness (7). Remaining day-7 polish (live pitch iteration, first
+real Sunday digest, retro) runs on your deployed instance — see below.
 
 ## Quickstart
 
@@ -76,6 +78,34 @@ Nightly logical dump, rotated weekly (`scripts/backup.sh`). Add to crontab:
 
 Each run writes `backup/rq-YYYYMMDD-HHMMSS.sql.gz` and deletes dumps older than
 7 days (`RETENTION_DAYS` to change).
+
+## Deploy to Fly.io
+
+The bot, the weekly-digest scheduler, and a `/health` endpoint all run in one
+always-on machine, with SQLite (and the embedding-model cache) on a persistent
+volume.
+
+```bash
+fly launch --no-deploy                       # creates the app from fly.toml
+fly volumes create rq_data --size 1          # persistent /data (DB + model cache)
+
+fly secrets set \
+  ANTHROPIC_API_KEY=sk-ant-... \
+  TELEGRAM_BOT_TOKEN=123456:ABC... \
+  TELEGRAM_ALLOWED_USER_IDS=123456789
+
+fly deploy
+fly logs                                      # watch it boot + apply migrations
+curl https://<app>.fly.dev/health             # {"status":"ok","version":"..."}
+```
+
+Notes:
+- `auto_stop_machines = false` — the process must stay up for Telegram
+  long-polling and the Sunday cron.
+- Playwright's browser isn't baked into the image (the fetch fallback degrades
+  gracefully per §13); the image is already large because of torch.
+- The image carries `LOCAL_TZ`/`DIGEST_CRON` via `[env]`; override with
+  `fly secrets`/`fly.toml` as needed.
 
 ## Development
 

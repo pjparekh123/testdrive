@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     digest_goal: int = 30  # target queue size shown in the digest footer
     local_tz: str = "America/Los_Angeles"
     log_level: str = "INFO"
+    health_port: int = 8080  # /health endpoint for Fly to ping
 
     # Models (§5). Bulk summarize/tag on Haiku; pitch/score on Sonnet.
     summarize_model: str = "claude-haiku-4-5-20251001"

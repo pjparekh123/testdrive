@@ -14,3 +14,6 @@ backup/*.sql
 
 # Models / caches
 .cache/
+
+# Pitch-review ratings (your personal data)
+evals/pitch_ratings/

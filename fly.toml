@@ -1,0 +1,38 @@
+# Fly.io config for the Smart Reading Queue (single always-on machine).
+app = "reading-queue"
+primary_region = "sjc"
+
+[build]
+
+[env]
+  DB_PATH = "/data/rq.db"
+  HF_HOME = "/data/hf-cache"
+  LOCAL_TZ = "America/Los_Angeles"
+  HEALTH_PORT = "8080"
+
+# Persistent SQLite + model cache. Create once:  fly volumes create rq_data --size 1
+[mounts]
+  source = "rq_data"
+  destination = "/data"
+
+# The bot must stay up (Telegram long-polling + the weekly cron), so do NOT let
+# Fly stop the machine on idle.
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  # Embeddings (sentence-transformers / torch) want headroom on first model load.
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
