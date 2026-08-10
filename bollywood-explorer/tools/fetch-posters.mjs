@@ -136,15 +136,20 @@ async function main() {
   console.log(`${films.length} films across ${new Set(films.map((f) => f.y)).size} years`);
   if (auditOnly) return audit(films);
 
+  // Always start from what's already baked. A run that can't reach the
+  // network must never be able to wipe good data.
   let existing = {};
-  if (onlyMissing && existsSync(OUT)) {
+  if (existsSync(OUT)) {
     const w = {};
     new Function("window", readFileSync(OUT, "utf8"))(w);
     existing = w.POSTER_URLS || {};
-    console.log(`keeping ${Object.keys(existing).length} already-resolved posters`);
+    if (Object.keys(existing).length) {
+      console.log(`keeping ${Object.keys(existing).length} already-resolved posters`);
+    }
   }
 
   const results = { ...existing };
+  let batchesOk = 0;
   // Round 1 uses each film's best title; later rounds retry the stragglers
   // with the next candidate, so one bad guess never loses a poster.
   const maxRounds = 4;
@@ -161,6 +166,7 @@ async function main() {
       const titles = slice.map((f) => titlesFor(f)[round]);
       try {
         const found = await resolveBatch([...new Set(titles)]);
+        batchesOk++;
         slice.forEach((f, n) => {
           const url = found[titles[n]];
           if (url) results[`${f.y}|${f.t}`] = url;
@@ -170,6 +176,7 @@ async function main() {
         await sleep(2000);
         try {
           const found = await resolveBatch([...new Set(titles)]);
+          batchesOk++;
           slice.forEach((f, n) => {
             const url = found[titles[n]];
             if (url) results[`${f.y}|${f.t}`] = url;
@@ -179,6 +186,12 @@ async function main() {
       process.stdout.write(`  ${Math.min(i + BATCH, todo.length)}/${todo.length}\r`);
       await sleep(PAUSE_MS);
     }
+  }
+
+  if (!batchesOk) {
+    console.error("\nEvery request failed — no network route to en.wikipedia.org.");
+    console.error("Nothing written, so any posters already baked are left untouched.");
+    process.exit(1);
   }
 
   const got = Object.keys(results).length;
