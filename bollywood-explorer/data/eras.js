@@ -95,5 +95,8 @@ window.FILMS = {};
 // One evocative line of context per year, set by the decade files.
 window.YEAR_NOTES = {};
 window.registerFilms = function (year, list) {
+  // Stamp the year onto every film — the image resolver builds Wikipedia
+  // title candidates like "Sholay (1975 film)" from it.
+  for (const f of list) f.y = year;
   window.FILMS[year] = (window.FILMS[year] || []).concat(list);
 };

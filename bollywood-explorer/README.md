@@ -33,9 +33,13 @@ Or publish the `bollywood-explorer/` folder to GitHub Pages / Netlify / any stat
   Shelf* (IMDb community ratings, approximate snapshots).
 - **Film pages** — Hindi + English titles, director/cast/composer, verdict badges, curated
   trivia, song pills, and one-tap links to Spotify, Apple Music, JioSaavn, IMDb and Wikipedia.
-- **Live imagery** — posters and cast portraits load at runtime from the Wikipedia/Wikimedia
-  API (batched, redirect-aware, cached in `localStorage`), so the site ships no image assets
-  and shows era-styled fallback cards when an image isn't available.
+- **Real posters, baked in** — run `node tools/fetch-posters.mjs` once with network access and
+  every film's real Wikipedia poster URL is written into `data/posters.js`. After that the site
+  needs no API at runtime: posters appear instantly and keep working from `file://`, offline
+  hosts and behind strict CSPs. Without that step the loader still resolves posters live from
+  the Wikipedia API, and any film it can't reach gets a **painted poster plate** — generated
+  hoarding-style art in one of eight saturated palettes, with the title, stars and director set
+  in display type. Cast portraits fall back to gold-ringed monogram medallions the same way.
 - **Videos** — click-to-load YouTube players (search-list embeds) for songs/jukeboxes,
   making-of footage and cast/director interviews, without hardcoding video IDs that rot.
 - **Three editions of the book, not one stretched layout** — laptop is the full folio with
@@ -47,14 +51,19 @@ Or publish the `bollywood-explorer/` folder to GitHub Pages / Netlify / any stat
 ## Structure
 
 ```
-index.html          app shell
-css/base.css        design system (aged paper, gold leaf, film grain)
-css/eras.css        per-decade palettes
-css/devices.css     laptop / iPad / mobile designs
-js/wiki.js          batched Wikipedia image loader with caching
-js/app.js           hash router + views
-data/eras.js        era metadata & registries
-data/films-*.js     ~850 curated films, ~10 per year, with trivia & songs
+index.html               app shell
+css/base.css             design system — silk & paper, SVG ornament library,
+                         jharokha niches, painted poster plates
+css/eras.css             per-chapter paper, ink and silk
+css/devices.css          laptop / iPad / mobile editions
+js/posters.js            image resolver: baked URLs → Special:FilePath →
+                         pageimages API → REST summary → painted plate
+js/app.js                hash router + views
+data/eras.js             era metadata & registries
+data/ephemera.js         famous dialogues and song lines
+data/posters.js          generated: real poster URLs keyed "year|title"
+data/films-*.js          850 curated films, ~10 per year, with trivia & songs
+tools/fetch-posters.mjs  resolves and bakes the poster URLs
 ```
 
 ## Data honesty

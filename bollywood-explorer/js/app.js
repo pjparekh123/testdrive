@@ -56,11 +56,28 @@
   }
 
   /* ── shared fragments ─────────────────────────────────────── */
+  /* A painted poster plate, drawn in CSS, for any film whose real
+     poster can't be reached. Palette is picked from the title so a
+     wall of them looks like a hand-painted hoarding, not a grid. */
+  function hashOf(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return h;
+  }
   function fallbackHTML(f, y, cls) {
-    return `<div class="${cls}" data-fallback>
-      <span class="pf-orn">❁</span>
-      <span class="pf-title">${esc(f.t)}</span>
-      <span class="pf-year">${y}</span>
+    const pal = hashOf(f.t + y) % 8;
+    const stars = (f.c || []).slice(0, 3).join(" · ");
+    const long = f.t.length > 22;
+    return `<div class="poster-plate ${cls || ""}" data-fallback data-pal="${pal}">
+      <span class="pp-rays" aria-hidden="true"></span>
+      <span class="pp-inner">
+        ${stars ? `<span class="pp-stars">${esc(stars)}</span>` : `<span class="pp-stars">${esc(String(y))}</span>`}
+        <span class="pp-title${long ? " long" : ""}">${esc(f.t)}</span>
+        ${f.h ? `<span class="pp-hi">${esc(f.h)}</span>` : ""}
+        <span class="pp-rule" aria-hidden="true"></span>
+        ${f.d ? `<span class="pp-dir">A ${esc(f.d.split(",")[0])} Film</span>` : ""}
+      </span>
+      <span class="pp-year">${deva(y)}</span>
     </div>`;
   }
 
@@ -73,7 +90,7 @@
     <div class="hero-film ${opts.flip ? "flip" : ""}">
       <a class="mehrab hero-niche" href="${href}" aria-label="${esc(f.t)}">
         <div class="hero-poster">
-          ${fallbackHTML(f, y, "wall-fallback")}
+          ${fallbackHTML(f, y)}
           <img alt="Poster of ${esc(f.t)}" loading="lazy" data-poster="${y}:${i}" data-size="640" style="position:absolute;inset:0">
         </div>
         <div class="niche-caption">${deva(y)} · now showing</div>
@@ -98,7 +115,7 @@
     <a class="frame" href="#/film/${y}/${slug(f.t)}" aria-label="${esc(f.t)}">
       <div class="fr-poster">
         ${badge || ""}
-        ${fallbackHTML(f, y, "fr-fallback")}
+        ${fallbackHTML(f, y)}
         <img alt="" loading="lazy" data-poster="${y}:${i}" data-size="240" style="position:absolute;inset:0">
       </div>
       <span class="fr-cap"><b>${esc(f.t)}</b>${f.d ? esc(f.d) : ""}</span>
@@ -275,7 +292,7 @@
         <a class="wall-card" href="#/film/${y}/${slug(f.t)}">
           <div class="wall-poster">
             <span class="wall-rank">${mode === "imdb" ? "★" + (f.r ? f.r.toFixed(1) : "–") : (f.er || "·")}</span>
-            ${fallbackHTML(f, y, "wall-fallback")}
+            ${fallbackHTML(f, y)}
             <img alt="" loading="lazy" data-poster="${y}:${i}" data-size="480" style="position:absolute;inset:0">
           </div>
           <span class="wall-cap">
@@ -395,7 +412,7 @@
     return `
     <a class="mehrab hero-niche" href="#/film/${y}/${slug(f.t)}">
       <div class="hero-poster">
-        ${fallbackHTML(f, y, "wall-fallback")}
+        ${fallbackHTML(f, y)}
         <img alt="Poster of ${esc(f.t)}" data-poster="${y}:${i}" data-size="640" style="position:absolute;inset:0">
       </div>
       <div class="niche-caption">${deva(y)} · now showing</div>
@@ -426,13 +443,21 @@
     const searchTerm = `${f.t} ${y}`;
     const wikiUrl = "https://en.wikipedia.org/wiki/" + encodeURIComponent((f.w || f.t).replace(/ /g, "_"));
 
-    const castHTML = (f.c || []).map((name) => `
+    const castHTML = (f.c || []).map((name) => {
+      const initials = name.replace(/\(.*?\)/g, "").trim().split(/\s+/)
+        .map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+      return `
       <div class="cast-card">
-        <div class="cast-ph"><span aria-hidden="true">❁</span><img alt="${esc(name)}" data-person="${esc(name)}"></div>
+        <div class="cast-ph" data-pal="${hashOf(name) % 8}">
+          <span class="cast-mono" data-fallback aria-hidden="true">${esc(initials)}</span>
+          <img alt="${esc(name)}" data-person="${esc(name)}">
+        </div>
         <span class="cast-name">${esc(name)}</span>
-      </div>`).join("");
+      </div>`;
+    }).join("");
 
-    const triviaHTML = (f.tr || []).map((t) => `<div class="trivia-item">${esc(t)}</div>`).join("");
+    // the first kissa is quoted up top, so the list below starts at the second
+    const triviaHTML = (f.tr || []).slice(1).map((t) => `<div class="trivia-item">${esc(t)}</div>`).join("");
     const songsHTML = (f.s || []).map((s) =>
       `<a class="song-pill" target="_blank" rel="noopener" href="${yt(`${s} ${f.t} ${y} song`)}">${esc(s)}</a>`).join("");
 
@@ -452,7 +477,7 @@
         <div class="fs-top">
           <div class="mehrab fs-niche">
             <div class="fs-poster">
-              ${fallbackHTML(f, y, "wall-fallback")}
+              ${fallbackHTML(f, y)}
               <img alt="Poster of ${esc(f.t)}" data-fs-poster style="position:absolute;inset:0">
             </div>
             <div class="niche-caption">${deva(y)}</div>
@@ -479,6 +504,7 @@
               <a class="lnk apple" target="_blank" rel="noopener" href="https://music.apple.com/us/search?term=${encodeURIComponent(f.t + " " + y)}"> Apple Music</a>
               <a class="lnk yt" target="_blank" rel="noopener" href="https://www.jiosaavn.com/search/${encodeURIComponent(f.t)}">🎵 JioSaavn</a>
             </div>
+            ${f.tr && f.tr[0] ? `<p class="pullquote fs-lead">${esc(f.tr[0])}</p>` : ""}
           </div>
         </div>
 
