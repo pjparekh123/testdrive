@@ -19,9 +19,12 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 window.Posters = (function () {
-  const API = "https://en.wikipedia.org/w/api.php";
-  const REST = "https://en.wikipedia.org/api/rest_v1/page/summary/";
-  const FILEPATH = "https://en.wikipedia.org/wiki/Special:FilePath/";
+  // Overridable so the site can be pointed at a Wikipedia mirror, or at a
+  // local stub during testing.
+  const ORIGIN = window.PARDA_WIKI_ORIGIN || "https://en.wikipedia.org";
+  const API = ORIGIN + "/w/api.php";
+  const REST = ORIGIN + "/api/rest_v1/page/summary/";
+  const FILEPATH = ORIGIN + "/wiki/Special:FilePath/";
   const CACHE_KEY = "parda-img-v3";
   const TTL_HIT = 1000 * 60 * 60 * 24 * 30;   // 30 days for a real URL
   const TTL_MISS = 1000 * 60 * 10;            // 10 min only for a miss
@@ -208,6 +211,29 @@ window.Posters = (function () {
     sources.push(() => restLookup(name));
     attach(imgEl, sources);
   }
+
+  /* If nothing at all can be fetched — an offline machine, or a host that
+     blocks external requests — say so once, quietly, rather than leaving
+     the reader wondering why every frame is painted instead of photographed. */
+  let noticeDone = false;
+  function watchForBlockedImages() {
+    if (noticeDone || Object.keys(BAKED).length) return;
+    noticeDone = true;
+    setTimeout(() => {
+      if (document.querySelector("img.loaded")) return;
+      if (document.getElementById("img-notice")) return;
+      const el = document.createElement("div");
+      el.id = "img-notice";
+      el.innerHTML =
+        `<span>Posters and portraits load from Wikipedia, which this page can't reach — ` +
+        `you're seeing painted plates instead.</span><button aria-label="Dismiss">✕</button>`;
+      el.querySelector("button").addEventListener("click", () => el.remove());
+      document.body.appendChild(el);
+    }, 6000);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", watchForBlockedImages);
+  } else { watchForBlockedImages(); }
 
   return { poster, person };
 })();

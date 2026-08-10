@@ -10,11 +10,28 @@ It's a fully static site — no build step, no dependencies:
 
 ```bash
 cd bollywood-explorer
-python3 -m http.server 8000
-# open http://localhost:8000
+node tools/fetch-posters.mjs     # once: bake in the real posters (needs network)
+python3 -m http.server 8000      # open http://localhost:8000
 ```
 
-Or publish the `bollywood-explorer/` folder to GitHub Pages / Netlify / any static host.
+Skip the first line and posters still resolve live from the Wikipedia API; bake
+them in and they load instantly with no API call at all. Either way, any film
+whose image can't be reached gets a painted poster plate instead of a gap.
+
+Publish the `bollywood-explorer/` folder to GitHub Pages / Netlify / any static host.
+
+### One self-contained file
+
+```bash
+node tools/bundle.mjs > parda.html                     # everything inlined
+node tools/bundle.mjs fonts.css --embed-images > x.html # …plus the posters themselves
+```
+
+`--embed-images` inlines every baked poster as a `data:` URI, so the page shows
+real photographs while making **zero** external requests — the only way to get
+posters onto a host that blocks outside traffic (a strict CSP, an offline
+laptop, an email attachment). Pass a stylesheet of `@font-face` rules with
+base64 `src`s as the first argument to embed the typefaces too.
 
 ## What's inside
 
