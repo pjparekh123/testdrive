@@ -27,7 +27,6 @@
   const byIMDb = (list) => list.slice().sort((a, b) => (b.f.r || 0) - (a.f.r || 0));
   const indexed = (y) => filmsOf(y).map((f, i) => ({ f, i }));
   const yt = (q) => "https://www.youtube.com/results?search_query=" + encodeURIComponent(q);
-  const ytEmbed = (q) => "https://www.youtube.com/embed?listType=search&list=" + encodeURIComponent(q);
 
   let totalFilms = 0;
   for (const y of YEARS) totalFilms += FILMS[y].length;
@@ -427,15 +426,20 @@
   }
 
   /* ── film sheet — the kissa file ──────────────────────────── */
+  /* Opens the footage on YouTube in a new tab. An inline player is not an
+     option here: embedding a *search* rather than a known video id relied on
+     the listType=search parameter, which YouTube no longer supports, and the
+     films are far too many to hand-pick video ids for. */
   function videoSlot(label, sub, query) {
     return `
-    <div class="video-slot" data-q="${esc(query)}">
-      <button class="vs-cover" aria-label="Play: ${esc(label)}">
+    <a class="video-slot" href="${yt(query)}" target="_blank" rel="noopener">
+      <span class="vs-cover">
         <span class="vs-play">▶</span>
         <span class="vs-label">${esc(label)}</span>
         <span class="vs-sub">${esc(sub)}</span>
-      </button>
-    </div>`;
+        <span class="vs-go">Search on YouTube ↗</span>
+      </span>
+    </a>`;
   }
 
   function openFilm(y, filmSlug) {
@@ -548,15 +552,6 @@
     window.Wiki.poster(f, sheet.querySelector("[data-fs-poster]"), 640);
     sheet.querySelectorAll("[data-person]").forEach((img) => window.Wiki.person(img.dataset.person, img));
     sheet.querySelector(".fs-close").addEventListener("click", () => history.back());
-    sheet.querySelectorAll(".video-slot").forEach((slot) => {
-      slot.querySelector(".vs-cover").addEventListener("click", () => {
-        const q = slot.dataset.q;
-        // Some hosts block YouTube iframes, so always offer the direct link.
-        slot.innerHTML =
-          `<iframe src="${ytEmbed(q)}" title="YouTube results" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-           <a class="vs-out" target="_blank" rel="noopener" href="${yt(q)}">Watch on YouTube ↗</a>`;
-      });
-    });
     sheet.querySelector(".fs-close").focus({ preventScroll: true });
   }
 

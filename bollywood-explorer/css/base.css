@@ -700,6 +700,7 @@ img { max-width: 100%; display: block; }
 
 .video-row { display: grid; gap: 1rem; }
 .video-slot { position: relative; border-radius: 6px; overflow: hidden; border: 1.5px solid var(--zari-dim); background: #2c0f10; box-shadow: var(--shadow-plate); }
+.video-slot { display: block; }
 .video-slot .vs-cover {
   width: 100%; aspect-ratio: 16 / 9; display: grid; place-content: center; gap: .5rem;
   text-align: center; padding: 1rem; cursor: pointer; color: #e8d5ad;
@@ -719,15 +720,12 @@ img { max-width: 100%; display: block; }
 .vs-cover:hover .vs-play { transform: scale(1.08); }
 .vs-label { font-family: var(--display); color: #f6ecd3; }
 .vs-sub { font-family: var(--ui); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: #b9a077; }
-.video-slot iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; display: block; }
-.vs-out {
-  display: block; padding: .5rem .8rem; text-align: center;
-  font-family: var(--ui); font-size: .64rem; font-weight: 600;
+.vs-go {
+  font-family: var(--ui); font-size: .58rem; font-weight: 600;
   letter-spacing: .16em; text-transform: uppercase;
-  color: var(--zari-hi); background: #2c0f10;
-  border-top: 1px solid var(--zari-dim);
+  color: var(--zari); margin-top: .3rem;
 }
-.vs-out:hover { color: #fff; background: var(--sindoor); }
+.video-slot:hover .vs-go { color: var(--zari-hi); }
 
 .song-pills { display: flex; flex-wrap: wrap; gap: .6rem; }
 .song-pill {

@@ -83,6 +83,32 @@ data/films-*.js          850 curated films, ~10 per year, with trivia & songs
 tools/fetch-posters.mjs  resolves and bakes the poster URLs
 ```
 
+## Before you publish
+
+Check what will actually load:
+
+```bash
+node tools/fetch-posters.mjs          # bake
+node tools/fetch-posters.mjs --audit  # coverage per decade + any dead URLs
+```
+
+Two things to know when the site is public:
+
+- **Coverage is uneven.** Every film here has a Wikipedia article title in its
+  record, but not every article carries a poster — expect near-complete coverage
+  from the 1950s on and real gaps in the silent and studio eras. Those films show
+  a painted plate, which is a designed state, not a broken one. `--audit` gives
+  you the exact numbers.
+- **The posters are other people's property.** Most Bollywood posters on Wikipedia
+  are non-free files used there under a fair-use rationale that covers Wikipedia,
+  not third-party sites. Hotlinking them from a public site is a copyright
+  question worth settling for yourself — the painted plates are the safe default,
+  and skipping the baking step keeps the site entirely free of hosted artwork.
+
+Songs and videos open a YouTube search in a new tab rather than embedding a
+player: embedding a *search* needed the `listType=search` parameter YouTube
+retired, and pinning a video id per film is not something this data carries.
+
 ## Data honesty
 
 Box-office rankings before the 1990s come from trade lore and historical reports and are
