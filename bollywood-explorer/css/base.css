@@ -720,6 +720,14 @@ img { max-width: 100%; display: block; }
 .vs-label { font-family: var(--display); color: #f6ecd3; }
 .vs-sub { font-family: var(--ui); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: #b9a077; }
 .video-slot iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; display: block; }
+.vs-out {
+  display: block; padding: .5rem .8rem; text-align: center;
+  font-family: var(--ui); font-size: .64rem; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--zari-hi); background: #2c0f10;
+  border-top: 1px solid var(--zari-dim);
+}
+.vs-out:hover { color: #fff; background: var(--sindoor); }
 
 .song-pills { display: flex; flex-wrap: wrap; gap: .6rem; }
 .song-pill {

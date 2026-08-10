@@ -550,7 +550,11 @@
     sheet.querySelector(".fs-close").addEventListener("click", () => history.back());
     sheet.querySelectorAll(".video-slot").forEach((slot) => {
       slot.querySelector(".vs-cover").addEventListener("click", () => {
-        slot.innerHTML = `<iframe src="${ytEmbed(slot.dataset.q)}" title="YouTube results" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        const q = slot.dataset.q;
+        // Some hosts block YouTube iframes, so always offer the direct link.
+        slot.innerHTML =
+          `<iframe src="${ytEmbed(q)}" title="YouTube results" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+           <a class="vs-out" target="_blank" rel="noopener" href="${yt(q)}">Watch on YouTube ↗</a>`;
       });
     });
     sheet.querySelector(".fs-close").focus({ preventScroll: true });
