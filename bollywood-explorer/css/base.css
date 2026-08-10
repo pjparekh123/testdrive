@@ -281,16 +281,42 @@ img { max-width: 100%; display: block; }
   border-right: 1.5px solid var(--zari-dim);
 }
 .cp-body { flex: 1; padding: 1.7rem 1.9rem 1.5rem; display: grid; gap: .4rem; align-content: center; }
-.cp-medal {
-  position: absolute; right: 1.4rem; top: 50%; transform: translateY(-50%);
-  width: 92px; height: 92px; display: grid; place-content: center;
-  background: var(--orn-rangoli) no-repeat center / contain;
-  font-family: var(--display); font-size: 1.35rem; color: var(--cd);
-  opacity: .9;
+
+/* a fan of three posters from the chapter, laid on the page like prints */
+.cp-fan {
+  flex: 0 0 auto; align-self: center;
+  position: relative; width: 196px; height: 148px;
+  margin-right: 1.3rem; display: block;
 }
+.cp-card {
+  position: absolute; top: 50%; left: 50%;
+  width: 82px; aspect-ratio: 27 / 40; overflow: hidden;
+  container-type: inline-size;
+  background: var(--paper-3);
+  border: 3px solid #fffdf5; outline: 1px solid rgba(44,24,16,.28);
+  box-shadow: 0 8px 18px -6px rgba(44, 24, 16, .55);
+  transform: translate(calc(-50% + var(--n) * 54px), -50%) rotate(calc(var(--n) * 6deg));
+  transition: transform .4s var(--ease);
+}
+.cp-card:nth-child(2) { z-index: 2; }
+.cp-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.cp-card img.loaded { opacity: 1; transition: opacity .5s; }
+.chapter-plate:hover .cp-card {
+  transform: translate(calc(-50% + var(--n) * 58px), -50%) rotate(calc(var(--n) * 9deg));
+}
+/* the plate's own poster art is tiny — drop the fine print and let the
+   title shrink below the wall-poster minimum so nothing gets clipped */
+.cp-card .pp-stars, .cp-card .pp-dir, .cp-card .pp-rule, .cp-card .pp-year { display: none; }
+.cp-card .pp-inner { padding: 6% 7%; }
+.cp-card .pp-title, .cp-card .pp-title.long { font-size: clamp(.42rem, 11.5cqw, .78rem); line-height: 1.06; }
+.cp-card .pp-hi { font-size: clamp(.34rem, 7cqw, .52rem); }
+/* the flanking prints are half-covered — let the centre one carry the
+   title and keep the others as pure painted colour */
+.cp-card:not(:nth-child(2)) .pp-inner { opacity: 0; }
+.cp-card::after { background: radial-gradient(120% 85% at 50% 30%, transparent 52%, rgba(0,0,0,.4)); }
 .cp-roman { font-family: var(--ui); font-weight: 600; font-size: .62rem; letter-spacing: .3em; text-transform: uppercase; color: var(--ca); }
 .cp-name { font-family: var(--display); font-size: clamp(1.5rem, 3.4vw, 2.2rem); line-height: 1.15; color: var(--ink); }
-.cp-name .hi { font-family: var(--deva); color: var(--ca); font-size: .6em; margin-left: .6rem; }
+.cp-name .hi { font-family: var(--deva); color: var(--ca); font-size: .6em; margin-left: .6rem; white-space: nowrap; }
 .cp-tag { font-style: italic; color: var(--ink-soft); }
 .cp-films {
   margin-top: .6rem; font-family: var(--ui); font-size: .64rem; letter-spacing: .1em;

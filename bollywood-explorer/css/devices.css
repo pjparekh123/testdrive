@@ -56,7 +56,14 @@
   #stage { padding: 0 2.2rem 4rem; }
   .toc { grid-template-columns: 1fr 1fr; }
   .chapter-plate[data-era="silent"] { grid-column: 1 / -1; }
-  .cp-body { padding: 1.7rem 1.8rem 1.5rem; }
+  .cp-body { padding: 1.5rem 1.5rem 1.3rem; }
+  /* two cards is enough at this width */
+  .cp-fan { width: 108px; height: 128px; margin-right: .9rem; }
+  .cp-card { width: 68px; }
+  .cp-card:nth-child(3) { display: none; }
+  .cp-card, .chapter-plate:hover .cp-card {
+    transform: translate(calc(-50% + var(--n) * 34px + 17px), -50%) rotate(calc(var(--n) * 6deg));
+  }
 
   .hero-film { grid-template-columns: 320px 1fr; }
   .frame { flex-basis: 128px; }
@@ -110,11 +117,17 @@
   .cover-strip .cs-cell { padding: .55rem 1rem; }
   .cover-ctas { flex-direction: column; align-items: center; }
 
-  .cp-body { padding: 1.3rem 1.2rem 1.1rem; }
-  .cp-spine { flex-basis: 20px; }
-  .cp-medal { display: none; }
+  .cp-body { padding: 1.2rem 1rem 1.1rem; }
+  .cp-spine { flex-basis: 16px; }
   .cp-films { display: none; }
-  .cp-name { font-size: 1.35rem; }
+  .cp-name { font-size: 1.25rem; }
+  /* a single upright print at phone size */
+  .cp-fan { width: 66px; height: 100px; margin-right: .8rem; }
+  .cp-card { width: 62px; }
+  .cp-card:nth-child(1), .cp-card:nth-child(3) { display: none; }
+  .cp-card, .chapter-plate:hover .cp-card {
+    transform: translate(-50%, -50%) rotate(-2deg);
+  }
 
   .chapter-cover { padding-top: 2.2rem; }
   .spread { padding-top: 2.2rem; }

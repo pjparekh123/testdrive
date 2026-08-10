@@ -170,23 +170,30 @@
   function viewHome() {
     const plates = ERAS.map((e, idx) => {
       const years = YEARS.filter((y) => y >= e.from && y <= e.to);
-      const icons = [];
-      for (const y of years) {
+      // three landmark films, spread across the chapter, shown as a fan
+      const step = Math.max(1, Math.floor(years.length / 3));
+      const picks = [];
+      for (let n = 0; n < years.length && picks.length < 3; n += step) {
+        const y = years[n];
         const top = byBO(indexed(y))[0];
-        if (top) icons.push(top.f.t);
+        if (top) picks.push({ f: top.f, y, i: top.i });
       }
-      const picks = icons.filter((t, i) => i % Math.ceil(icons.length / 4 || 1) === 0).slice(0, 4);
+      const fan = picks.map((p, n) => `
+        <span class="cp-card" style="--n:${n - 1}">
+          ${fallbackHTML(p.f, p.y)}
+          <img alt="" loading="lazy" data-poster="${p.y}:${p.i}" data-size="240" style="position:absolute;inset:0">
+        </span>`).join("");
       return `
       <a class="chapter-plate fade-in" data-era="${e.id}" href="#/era/${e.id}">
         <span class="cp-spine" aria-hidden="true"></span>
-        <span class="cp-medal" aria-hidden="true">${ROMAN[idx]}</span>
         <span class="cp-body">
           <span class="cp-roman">Chapter ${ROMAN[idx]} · ${e.from}–${e.to} · ${deva(e.from)}–${deva(e.to)}</span>
           <span class="cp-name">${esc(e.en)}<span class="hi">${esc(e.hi)}</span></span>
           <span class="cp-tag">${esc(e.tag)}</span>
-          <span class="cp-films">Featuring ${picks.map((p) => `<b>${esc(p)}</b>`).join(" · ")}</span>
+          <span class="cp-films">Featuring ${picks.map((p) => `<b>${esc(p.f.t)}</b>`).join(" · ")}</span>
           <span class="cp-go">Turn to this chapter →</span>
         </span>
+        <span class="cp-fan" aria-hidden="true">${fan}</span>
       </a>`;
     }).join("");
     render(`
