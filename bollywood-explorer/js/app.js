@@ -146,6 +146,34 @@
     </section>`;
   }
 
+  /* The front of a single-screen cinema: the chapter's name on the marquee
+     in giant Devanagari, its own posters on the display boards. */
+  function facadeHTML(scene, devaName, sub, boards, doorLine) {
+    const board = (p, side) => p ? `
+      <span class="fc-board" style="transform:rotate(${side}deg)">
+        ${fallbackHTML(p.f, p.y)}
+        <img alt="" loading="lazy" data-poster="${p.y}:${p.i}" data-size="240" style="position:absolute;inset:0">
+      </span>` : `<span></span>`;
+    return `
+    <section class="facade" data-scene="${scene}">
+      <div class="fc-sky"></div>
+      <div class="fc-roof"></div>
+      <div class="fc-marquee">
+        <span class="fc-bulbs"></span>
+        <h1 class="fc-name">${esc(devaName)}</h1>
+        <p class="fc-sub">${esc(sub)}</p>
+        <span class="fc-bulbs"></span>
+      </div>
+      <div class="fc-front">
+        ${board(boards[0], -1)}
+        <span class="fc-door"><b>${esc(doorLine)}</b><span>booking open</span></span>
+        ${board(boards[1], 1)}
+      </div>
+      <div class="fc-crowd"></div>
+      <div class="fc-ground"></div>
+    </section>`;
+  }
+
   function interludeHTML(item) {
     if (!item) return "";
     const linked = findFilm(item.film, item.y);
@@ -165,18 +193,22 @@
     return list.find((f) => slug(f.t) === slug(title)) || null;
   }
 
+  /* three landmark films spread across a chapter */
+  function picksFor(e) {
+    const years = YEARS.filter((y) => y >= e.from && y <= e.to);
+    const step = Math.max(1, Math.floor(years.length / 3));
+    const picks = [];
+    for (let n = 0; n < years.length && picks.length < 3; n += step) {
+      const top = byBO(indexed(years[n]))[0];
+      if (top) picks.push({ f: top.f, y: years[n], i: top.i });
+    }
+    return picks;
+  }
+
   /* ── the cover (home) ─────────────────────────────────────── */
   function viewHome() {
     const plates = ERAS.map((e, idx) => {
-      const years = YEARS.filter((y) => y >= e.from && y <= e.to);
-      // three landmark films, spread across the chapter, shown as a fan
-      const step = Math.max(1, Math.floor(years.length / 3));
-      const picks = [];
-      for (let n = 0; n < years.length && picks.length < 3; n += step) {
-        const y = years[n];
-        const top = byBO(indexed(y))[0];
-        if (top) picks.push({ f: top.f, y, i: top.i });
-      }
+      const picks = picksFor(e);
       const fan = picks.map((p, n) => `
         <span class="cp-card" style="--n:${n - 1}">
           ${fallbackHTML(p.f, p.y)}
@@ -195,22 +227,18 @@
         <span class="cp-fan" aria-hidden="true">${fan}</span>
       </a>`;
     }).join("");
+    const hero = picksFor(ERAS[5]);   // a marquee needs a crowd-puller
     render(`
+      ${facadeHTML("home", "सौ साल का सिनेमा",
+        `${totalFilms} films · ${YEARS.length} years · ${ERAS.length} chapters`,
+        [hero[0], hero[1]], "पर्दा")}
       <section class="cover fade-in">
-        <p class="cover-kicker">किस्से · नग़मे · सितारे</p>
-        <h1 class="cover-title">सौ साल का सिनेमा</h1>
-        <p class="cover-en">A Hundred Years of Hindi Cinema</p>
-        <p class="cover-deck">A coffee-table book of the movies India stood in line for — the biggest
+        <p class="cover-deck">A hundred years of the movies India stood in line for — the biggest
         hits and best-loved films of every single year since 1913, with their posters, faces,
         songs, and the kisse told about them ever since.</p>
         <div class="cover-ctas">
           <a class="btn-marquee" href="#/era/silent">Begin at the beginning · 1913 →</a>
           <a class="btn-marquee ghost" href="#/surprise">Open a page at random ✦</a>
-        </div>
-        <div class="cover-strip">
-          <div class="cs-cell"><b>${YEARS[YEARS.length - 1] - YEARS[0] + 1}</b><span>years</span></div>
-          <div class="cs-cell"><b>${totalFilms}</b><span>films</span></div>
-          <div class="cs-cell"><b>${ERAS.length}</b><span>chapters</span></div>
         </div>
       </section>
       <div class="paisley-div"></div>
@@ -238,12 +266,9 @@
     }).join("");
     const next = ERAS[idx + 1];
     render(`
+      ${facadeHTML(e.id, e.hi, `Chapter ${ROMAN[idx]} · ${e.en} · ${e.from}–${e.to}`,
+        [picksFor(e)[0], picksFor(e)[1]], "आज का शो")}
       <header class="chapter-cover fade-in">
-        <div class="mehrab chapter-niche">
-          <p class="cc-roman">Chapter ${ROMAN[idx]}</p>
-          <h1>${esc(e.en)}<span class="hi-big">${esc(e.hi)}</span></h1>
-          <p class="cc-years">${e.from} — ${e.to} · ${deva(e.from)} — ${deva(e.to)}</p>
-        </div>
         <p class="essay drop">${esc(e.blurb)}</p>
         ${e.note ? `<p class="note">${esc(e.note)}</p>` : ""}
         <div class="paisley-div small"></div>

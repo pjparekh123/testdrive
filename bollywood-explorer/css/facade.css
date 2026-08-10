@@ -1,0 +1,158 @@
+/* ═══════════════════════════════════════════════════════════════════
+   PARDA · facade.css — the single-screen cinema you're standing in front of.
+   A flat, poster-painted scene: sky, roofline, marquee, display boards,
+   ticket window, and a queue of silhouettes. Built from flat colour
+   blocks only — no gradients, no metal — and unified by heavy grain.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.facade {
+  --sky: #2f6ea8;
+  --wall: #b8402a;
+  --wall-dark: #8d2c1c;
+  --trim: #f3e4c4;
+  --shade: #2a1a16;
+  --glass: #16333a;
+  --bulb: #f6d97e;
+
+  position: relative;
+  margin: 0 calc(50% - 50vw);        /* break out to full bleed */
+  width: 100vw;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--trim);
+}
+
+/* sky and the town behind the roofline */
+.fc-sky {
+  position: relative;
+  height: clamp(80px, 13vw, 150px);
+  background: var(--sky);
+}
+.fc-sky::after {                      /* flat rooftops of the town */
+  content: ""; position: absolute; inset: auto 0 0 0; height: 58%;
+  background:
+    linear-gradient(90deg,
+      var(--wall-dark) 0 6%, transparent 6% 9%,
+      var(--wall-dark) 9% 17%, transparent 17% 21%,
+      var(--wall-dark) 21% 26%, transparent 26% 31%,
+      var(--wall-dark) 31% 40%, transparent 40% 44%,
+      var(--wall-dark) 44% 52%, transparent 52% 57%,
+      var(--wall-dark) 57% 63%, transparent 63% 68%,
+      var(--wall-dark) 68% 77%, transparent 77% 80%,
+      var(--wall-dark) 80% 88%, transparent 88% 92%,
+      var(--wall-dark) 92% 100%);
+  opacity: .85;
+}
+
+/* the scalloped awning over the marquee */
+.fc-roof {
+  height: 18px;
+  background:
+    radial-gradient(circle at 11px 0, var(--shade) 11px, transparent 11.5px) repeat-x 0 0 / 22px 18px;
+  filter: saturate(.9);
+}
+
+/* MARQUEE — the chapter name in giant Devanagari */
+.fc-marquee {
+  background: var(--wall);
+  padding: clamp(1.2rem, 3.2vw, 2.4rem) 1rem clamp(1rem, 2.6vw, 1.9rem);
+  text-align: center;
+  position: relative;
+}
+.fc-bulbs {
+  display: block; height: 12px;
+  background: radial-gradient(circle, var(--bulb) 4.2px, transparent 4.6px) repeat-x center / 26px 12px;
+}
+.fc-name {
+  font-family: var(--deva); line-height: 1.06;
+  font-size: clamp(2.6rem, 11.5vw, 8.5rem);
+  color: #fff;
+  letter-spacing: .01em;
+  margin: clamp(.5rem, 1.6vw, 1rem) 0;
+  text-wrap: balance;
+}
+.fc-sub {
+  font-family: var(--ui); font-weight: 600;
+  font-size: clamp(.56rem, 1.3vw, .72rem);
+  letter-spacing: .42em; text-transform: uppercase;
+  color: var(--trim); opacity: .85;
+}
+
+/* the shopfront: boards flanking the entrance */
+.fc-front {
+  background: var(--wall-dark);
+  display: grid; align-items: end;
+  grid-template-columns: 1fr auto 1fr;
+  gap: clamp(.8rem, 3vw, 2.4rem);
+  padding: clamp(1.2rem, 3vw, 2.4rem) clamp(1rem, 4vw, 3.5rem) 0;
+}
+.fc-board {
+  justify-self: center;
+  width: min(150px, 20vw); aspect-ratio: 27 / 40;
+  position: relative; overflow: hidden;
+  background: var(--shade);
+  border: 6px solid var(--trim);
+  container-type: inline-size;
+}
+.fc-board:nth-of-type(1) { transform: rotate(-1deg); }
+.fc-board:last-of-type { transform: rotate(1deg); }
+.fc-board img { width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.fc-board img.loaded { opacity: 1; transition: opacity .5s; }
+
+/* entrance arch + ticket window */
+.fc-door {
+  justify-self: center; align-self: end;
+  width: min(230px, 34vw);
+  background: var(--glass);
+  border: 6px solid var(--trim); border-bottom: none;
+  border-radius: 50% 50% 0 0 / 26% 26% 0 0;
+  padding: clamp(1.4rem, 3vw, 2.2rem) 1rem clamp(.7rem, 1.6vw, 1.1rem);
+  text-align: center;
+  min-height: clamp(120px, 17vw, 200px);
+  display: grid; align-content: end; gap: .35rem;
+}
+.fc-door b {
+  display: block; font-family: var(--deva-text);
+  font-size: clamp(.7rem, 1.7vw, 1rem); color: var(--bulb);
+}
+.fc-door span {
+  font-family: var(--ui); font-size: clamp(.48rem, 1.05vw, .58rem);
+  letter-spacing: .3em; text-transform: uppercase; color: var(--trim); opacity: .7;
+}
+
+/* the queue outside */
+.fc-crowd {
+  height: clamp(30px, 5.5vw, 58px);
+  background:
+    radial-gradient(circle at 50% 100%, var(--shade) 13px, transparent 13.5px) repeat-x 0 100% / 34px 30px,
+    radial-gradient(circle at 50% 100%, var(--shade) 16px, transparent 16.5px) repeat-x 17px 100% / 46px 34px,
+    var(--wall-dark);
+}
+.fc-ground { height: clamp(10px, 2vw, 22px); background: var(--shade); }
+
+/* riso grain sits over the whole scene */
+.facade::after {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  mix-blend-mode: multiply; opacity: .5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.55'/%3E%3C/svg%3E");
+}
+
+/* per-chapter repaint — flat blocks, no gradients */
+.facade[data-scene="silent"]  { --sky: #6f7f86; --wall: #7d5326; --wall-dark: #5b3a19; --glass: #2a2118; }
+.facade[data-scene="1930s"]   { --sky: #3f7f78; --wall: #1f6157; --wall-dark: #14453e; --glass: #10312c; }
+.facade[data-scene="1940s"]   { --sky: #4f7fa8; --wall: #b26214; --wall-dark: #7f440c; --glass: #24301f; }
+.facade[data-scene="1950s"]   { --sky: #59606a; --wall: #8a6d20; --wall-dark: #5f4a13; --glass: #23231d; }
+.facade[data-scene="1960s"]   { --sky: #3f8fa0; --wall: #c23a70; --wall-dark: #8d2450; --glass: #12343a; }
+.facade[data-scene="1970s"]   { --sky: #2f6ea8; --wall: #b8402a; --wall-dark: #8d2c1c; --glass: #16333a; }
+.facade[data-scene="1980s"]   { --sky: #4a3f8f; --wall: #bb2a6c; --wall-dark: #7c1a48; --glass: #2a1740; }
+.facade[data-scene="1990s"]   { --sky: #4d94b8; --wall: #2e7a4e; --wall-dark: #1d5334; --glass: #14332a; }
+.facade[data-scene="2000s"]   { --sky: #4d7cb8; --wall: #2e4a97; --wall-dark: #1e3168; --glass: #16243f; }
+.facade[data-scene="2010s"]   { --sky: #3b4a8f; --wall: #c26a09; --wall-dark: #8a4805; --glass: #1c2145; }
+.facade[data-scene="2020s"]   { --sky: #2b6f6a; --wall: #0e6b64; --wall-dark: #094743; --glass: #0a2320; }
+.facade[data-scene="home"]    { --sky: #2f6ea8; --wall: #c0331b; --wall-dark: #8d2113; --glass: #16333a; }
+
+@media (max-width: 699px) {
+  .fc-front { grid-template-columns: 1fr; gap: 0; padding-inline: 1rem; }
+  .fc-board { display: none; }
+  .fc-door { width: min(280px, 72vw); }
+}

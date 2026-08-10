@@ -22,6 +22,7 @@
   --zari: #d9b45b;             /* gold thread */
   --zari-hi: #f0d189;
   --zari-dim: #b28d3f;
+  --trim-flat: #f3e4c4;   /* flat cream trim, replaces gold sheen */
 
   /* The Indian box of colours */
   --sindoor: #c0331b;
@@ -92,8 +93,8 @@ img { max-width: 100%; display: block; }
 
 #grain {
   position: fixed; inset: 0; z-index: 90; pointer-events: none;
-  opacity: .3; mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+  opacity: .5; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01s !important; transition-duration: .01s !important; }
@@ -108,16 +109,10 @@ img { max-width: 100%; display: block; }
 /* jharokha / mehrab arch niche — silk alcove for treasures */
 .mehrab {
   position: relative;
-  background:
-    radial-gradient(120% 90% at 50% 0%, rgba(240, 209, 137, .14), transparent 55%),
-    linear-gradient(180deg, color-mix(in srgb, var(--era-deep) 82%, #f0d189 18%), var(--era-deep) 55%);
+  background: var(--era-deep);
   border-radius: 50% 50% 10px 10px / 26% 26% 10px 10px;
   padding: 3.4rem 1.7rem 1.7rem;
-  box-shadow:
-    inset 0 0 0 3px var(--zari),
-    inset 0 0 0 5px color-mix(in srgb, var(--era-deep) 60%, black 40%),
-    inset 0 0 0 7px rgba(217, 180, 91, .5),
-    var(--shadow-plate);
+  box-shadow: inset 0 0 0 4px var(--trim-flat), var(--shadow-plate);
 }
 .mehrab::before { /* kalash finial */
   content: ""; position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
@@ -163,16 +158,16 @@ img { max-width: 100%; display: block; }
 /* gem-cut buttons (notched corners, like a tikka) */
 .btn-marquee {
   font-family: var(--ui); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: .76rem;
-  background: linear-gradient(180deg, #d24525, var(--sindoor) 60%, #9c2814);
+  background: var(--sindoor);
   color: #fdf0d8;
   padding: .9rem 2rem;
   clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
-  box-shadow: inset 0 0 0 2px rgba(240, 209, 137, .65), inset 0 0 0 4px rgba(124, 31, 34, .6);
+  box-shadow: inset 0 0 0 3px var(--trim-flat);
   transition: transform .25s var(--ease), filter .25s;
 }
 .btn-marquee:hover { transform: translateY(-3px); filter: brightness(1.08); }
 .btn-marquee.ghost {
-  background: linear-gradient(180deg, #135c5d, var(--peacock) 60%, #0a4a4b);
+  background: var(--peacock);
   color: #eafaf6;
 }
 
@@ -180,14 +175,13 @@ img { max-width: 100%; display: block; }
 #masthead {
   display: flex; align-items: center; justify-content: space-between;
   gap: 1rem; padding: .7rem 1.4rem;
-  background: linear-gradient(180deg, #521418, var(--silk) 55%, var(--silk-2));
+  background: var(--silk);
   position: sticky; top: 0; z-index: 40;
   box-shadow: 0 6px 20px rgba(44, 24, 16, .35);
 }
 #masthead::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: -11px; height: 11px;
-  background: var(--orn-zari) repeat-x center / 22px 11px, var(--silk-2);
-  border-bottom: 1.5px solid var(--zari-dim);
+  content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 5px;
+  background: var(--marigold);
 }
 #brand { display: flex; align-items: center; gap: .6rem; }
 .brand-reel { font-size: 1.35rem; color: var(--marigold); }
@@ -206,28 +200,13 @@ img { max-width: 100%; display: block; }
 
 /* ── The Cover — silk jacket ──────────────────────────────── */
 .cover {
+  /* the facade above carries the drama; this is just the note beneath it */
   position: relative; text-align: center;
-  margin: 1.6rem auto 0;
-  padding: 4.4rem 1.4rem 3rem;
-  background:
-    repeating-conic-gradient(from 0deg at 50% 34%,
-      rgba(240, 209, 137, .09) 0deg 5deg, transparent 5deg 11deg),
-    radial-gradient(120% 80% at 50% 0%, #5e181c, transparent 70%),
-    linear-gradient(180deg, #521418, var(--silk) 45%, var(--silk-2));
-  border-radius: 8px;
-  box-shadow:
-    inset 0 0 0 2px var(--zari),
-    inset 0 0 0 8px transparent,
-    inset 0 0 0 9px rgba(217, 180, 91, .35),
-    var(--shadow-plate);
-  overflow: hidden;
+  margin: 0 auto; padding: 2.6rem 1.4rem 1.4rem;
+  max-width: 62ch;
 }
 .cover > * { position: relative; }
-.cover::before { /* marigold garland hung across the top */
-  content: ""; position: absolute; top: -4px; left: -10px; right: -10px; height: 58px;
-  background: var(--orn-garland) repeat-x top center / 64px 58px;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,.35));
-}
+
 .cover-kicker {
   font-family: var(--ui); font-weight: 600; letter-spacing: .5em; font-size: .68rem;
   color: var(--marigold); text-transform: uppercase; margin-top: 1.6rem;
@@ -246,7 +225,7 @@ img { max-width: 100%; display: block; }
   color: #f3dfb2; letter-spacing: .04em; margin-top: .5rem;
 }
 .cover-deck {
-  font-family: var(--body); font-style: italic; color: #d9b98b;
+  font-family: var(--body); font-style: italic; color: var(--ink-soft);
   max-width: 56ch; margin: 1.1rem auto 0; font-size: 1rem;
 }
 .cover-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2.2rem; }
@@ -275,10 +254,10 @@ img { max-width: 100%; display: block; }
   transition: transform .35s var(--ease), box-shadow .35s var(--ease);
 }
 .chapter-plate:hover { transform: translateY(-5px) rotate(-.3deg); box-shadow: 0 24px 48px -16px rgba(44,24,16,.55); }
-.cp-spine { /* vertical zari sari-border */
-  flex: 0 0 30px;
-  background: var(--orn-zari) repeat-y center / 22px 11px, var(--cd);
-  border-right: 1.5px solid var(--zari-dim);
+.cp-spine { /* flat painted spine, matching the chapter's cinema front */
+  flex: 0 0 22px;
+  background: var(--cd);
+  border-right: 4px solid var(--ca);
 }
 .cp-body { flex: 1; padding: 1.7rem 1.9rem 1.5rem; display: grid; gap: .4rem; align-content: center; }
 
@@ -412,7 +391,7 @@ img { max-width: 100%; display: block; }
 .hero-more {
   justify-self: start; margin-top: .6rem;
   font-family: var(--ui); font-weight: 700; font-size: .68rem; letter-spacing: .18em; text-transform: uppercase;
-  color: #fdf0d8; background: linear-gradient(180deg, color-mix(in srgb, var(--era-a) 80%, white 20%), var(--era-a) 55%, color-mix(in srgb, var(--era-a) 70%, black 30%));
+  color: #fdf0d8; background: var(--era-a);
   padding: .6rem 1.3rem;
   clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px), calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
   box-shadow: inset 0 0 0 1.5px rgba(240, 209, 137, .6);
@@ -497,9 +476,7 @@ img { max-width: 100%; display: block; }
   display: block; text-align: center; margin: 3.4rem auto 1rem; max-width: 560px;
   position: relative; overflow: hidden;
   padding: 2rem 1.6rem 1.8rem; border-radius: 8px;
-  background:
-    repeating-conic-gradient(from 0deg at 50% 40%, rgba(240,209,137,.08) 0deg 6deg, transparent 6deg 13deg),
-    linear-gradient(180deg, #521418, var(--silk) 50%, var(--silk-2));
+  background: var(--silk);
   box-shadow: inset 0 0 0 2px var(--zari), inset 0 0 0 6px transparent, inset 0 0 0 7px rgba(217,180,91,.35), var(--shadow-plate);
   transition: transform .3s var(--ease);
 }
@@ -531,7 +508,7 @@ img { max-width: 100%; display: block; }
   clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%, 0 9px);
 }
 .bookmarks button.on {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--era-a) 82%, white 18%), var(--era-a));
+  background: var(--era-a);
   color: #fdf0d8; border-color: var(--era-a);
   box-shadow: inset 0 0 0 1.5px rgba(240,209,137,.55);
 }
@@ -933,12 +910,11 @@ img { max-width: 100%; display: block; }
   position: relative;
   margin-top: 3.5rem; padding: 2.4rem 1.5rem 3.2rem;
   text-align: center; color: #d9b98b; font-size: .78rem;
-  background: linear-gradient(180deg, #521418, var(--silk) 55%, var(--silk-2));
+  background: var(--silk);
 }
 #colophon::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 11px;
-  background: var(--orn-zari) repeat-x center / 22px 11px, var(--silk-2);
-  border-bottom: 1.5px solid var(--zari-dim);
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+  background: var(--marigold);
 }
 #colophon p { max-width: 640px; margin: .4rem auto; }
 .colo-orn { color: var(--marigold); letter-spacing: .8em; padding-left: .8em; }
