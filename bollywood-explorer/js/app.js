@@ -18,6 +18,8 @@
   const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 
   const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const DEVA_DIGITS = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
+  const deva = (n) => String(n).split("").map((d) => DEVA_DIGITS[+d] ?? d).join("");
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const eraOf = (y) => ERAS.find((e) => y >= e.from && y <= e.to) || ERAS[ERAS.length - 1];
   const filmsOf = (y) => FILMS[y] || [];
@@ -69,11 +71,12 @@
     const rankLine = opts.rankLine || (f.er === 1 ? "The film of the year · Box-office no. 1" : (f.er ? `Box-office no. ${f.er}` : "The year's most loved"));
     return `
     <div class="hero-film ${opts.flip ? "flip" : ""}">
-      <a class="hero-poster-wrap" href="${href}" aria-label="${esc(f.t)}">
+      <a class="mehrab hero-niche" href="${href}" aria-label="${esc(f.t)}">
         <div class="hero-poster">
           ${fallbackHTML(f, y, "wall-fallback")}
           <img alt="Poster of ${esc(f.t)}" loading="lazy" data-poster="${y}:${i}" data-size="640" style="position:absolute;inset:0">
         </div>
+        <div class="niche-caption">${deva(y)} · now showing</div>
       </a>
       <div class="hero-info">
         <span class="hero-rank">${esc(rankLine)}</span>
@@ -113,7 +116,10 @@
     return `
     <section class="spread" id="y${y}">
       <div class="spread-mast">
-        <h2 class="spread-year"><a href="#/year/${y}" title="Open ${y} as a full page">${y}</a></h2>
+        <h2 class="spread-year">
+          <a href="#/year/${y}" title="Open ${y} as a full page">${y}</a>
+          <span class="deva-year">${deva(y)}</span>
+        </h2>
         ${note ? `<p class="spread-note">${esc(note)}</p>` : ""}
       </div>
       ${heroHTML(hero.f, y, hero.i, { flip: opts.flip })}
@@ -155,10 +161,10 @@
       const picks = icons.filter((t, i) => i % Math.ceil(icons.length / 4 || 1) === 0).slice(0, 4);
       return `
       <a class="chapter-plate fade-in" data-era="${e.id}" href="#/era/${e.id}">
-        <span class="toran"></span>
-        <span class="cp-motif" aria-hidden="true">${e.motif}</span>
+        <span class="cp-spine" aria-hidden="true"></span>
+        <span class="cp-medal" aria-hidden="true">${ROMAN[idx]}</span>
         <span class="cp-body">
-          <span class="cp-roman">CHAPTER ${ROMAN[idx]} · ${e.from}–${e.to}</span>
+          <span class="cp-roman">Chapter ${ROMAN[idx]} · ${e.from}–${e.to} · ${deva(e.from)}–${deva(e.to)}</span>
           <span class="cp-name">${esc(e.en)}<span class="hi">${esc(e.hi)}</span></span>
           <span class="cp-tag">${esc(e.tag)}</span>
           <span class="cp-films">Featuring ${picks.map((p) => `<b>${esc(p)}</b>`).join(" · ")}</span>
@@ -184,7 +190,7 @@
           <div class="cs-cell"><b>${ERAS.length}</b><span>chapters</span></div>
         </div>
       </section>
-      <div class="garland"></div>
+      <div class="paisley-div"></div>
       <section class="toc-head fade-in">
         <h2>The Chapters <span class="hi">अध्याय</span></h2>
       </section>
@@ -210,12 +216,14 @@
     const next = ERAS[idx + 1];
     render(`
       <header class="chapter-cover fade-in">
-        <p class="cc-roman">CHAPTER ${ROMAN[idx]}</p>
-        <h1>${esc(e.en)}<span class="hi-big">${esc(e.hi)}</span></h1>
-        <p class="cc-years">${e.from} — ${e.to} &nbsp;${e.motif}</p>
-        <p class="essay">${esc(e.blurb)}</p>
+        <div class="mehrab chapter-niche">
+          <p class="cc-roman">Chapter ${ROMAN[idx]}</p>
+          <h1>${esc(e.en)}<span class="hi-big">${esc(e.hi)}</span></h1>
+          <p class="cc-years">${e.from} — ${e.to} · ${deva(e.from)} — ${deva(e.to)}</p>
+        </div>
+        <p class="essay drop">${esc(e.blurb)}</p>
         ${e.note ? `<p class="note">${esc(e.note)}</p>` : ""}
-        <div class="garland small"></div>
+        <div class="paisley-div small"></div>
       </header>
       ${spreads}
       ${next ? `
@@ -246,10 +254,10 @@
     const prev = YEARS[idx - 1], next = YEARS[idx + 1];
     const note = YEAR_NOTES[y];
     render(`
-      <header class="chapter-cover fade-in" style="padding-bottom:0">
+      <header class="year-mast fade-in">
         <p class="cc-roman"><a href="#/era/${e.id}">${e.motif} ${esc(e.en)} · ${esc(e.hi)}</a></p>
-        <h1 style="font-size:clamp(3rem,9vw,5rem);color:var(--era-a)">${y}</h1>
-        ${note ? `<p class="essay" style="font-style:italic">${esc(note)}</p>` : ""}
+        <div class="year-big"><b>${y}</b><span class="deva-year">${deva(y)}</span></div>
+        ${note ? `<p class="essay-line">${esc(note)}</p>` : ""}
         <div class="bookmarks" role="tablist">
           <button role="tab" aria-selected="${mode !== "imdb"}" class="${mode !== "imdb" ? "on" : ""}" data-mode="bo">₹ The Queue Outside</button>
           <button role="tab" aria-selected="${mode === "imdb"}" class="${mode === "imdb" ? "on" : ""}" data-mode="imdb">★ The Critics' Shelf</button>
@@ -293,22 +301,30 @@
     const rows = ERAS.map((e, idx) => {
       const years = YEARS.filter((y) => y >= e.from && y <= e.to);
       return `
-      <section class="fade-in" style="display:grid;gap:.6rem">
-        <h2 style="font-family:var(--display);font-size:1.35rem">
-          <a href="#/era/${e.id}">${e.motif} Chapter ${ROMAN[idx]} — ${esc(e.en)}</a>
-          <span style="font-family:var(--deva-text);font-size:.9rem;color:var(--sindoor)"> ${esc(e.hi)}</span>
+      <section class="toc-era fade-in" data-era="${e.id}">
+        <h2 class="toc-era-head">
+          <span class="toc-era-num">${ROMAN[idx]}</span>
+          <a href="#/era/${e.id}">${esc(e.en)}</a>
+          <span class="hi">${esc(e.hi)}</span>
+          <span class="toc-dots"></span>
+          <span class="toc-range">${e.from}–${e.to}</span>
         </h2>
-        <div style="display:flex;flex-wrap:wrap;gap:.45rem">
-          ${years.map((y) => `<a class="chip" href="#/year/${y}">${y}</a>`).join("")}
+        <div class="toc-years">
+          ${years.map((y) => `<a class="year-tab" href="#/year/${y}"><b>${y}</b><span>${deva(y)}</span></a>`).join("")}
         </div>
       </section>`;
     }).join("");
     render(`
       <header class="chapter-cover fade-in">
-        <h1>Contents<span class="hi-big">अनुक्रमणिका</span></h1>
-        <p class="essay">Every chapter, every year — open the book anywhere.</p>
+        <div class="mehrab chapter-niche">
+          <p class="cc-roman">The Book</p>
+          <h1>Contents<span class="hi-big">अनुक्रमणिका</span></h1>
+          <p class="cc-years">${YEARS.length} years · ${ERAS.length} chapters</p>
+        </div>
+        <p class="essay plain">Every chapter, every year — open the book anywhere.</p>
+        <div class="paisley-div small"></div>
       </header>
-      <div style="display:grid;gap:2rem">${rows}</div>
+      <div class="toc-list">${rows}</div>
     `, "home", "timeline");
   }
 
@@ -317,7 +333,10 @@
     render(`
       <div class="search-wrap fade-in">
         <header class="search-head">
-          <h1>The Index<span class="hi-big">तलाश</span></h1>
+          <div class="mehrab chapter-niche" style="max-width:460px">
+            <p class="cc-roman">Back of the book</p>
+            <h1>The Index<span class="hi-big">तलाश</span></h1>
+          </div>
         </header>
         <input id="search-input" type="search" autocomplete="off"
           placeholder="A film, a star, a music maker… try “Guru Dutt”" value="${esc(q || "")}">
@@ -374,11 +393,12 @@
 
   function heroPosterOnly(f, y, i) {
     return `
-    <a class="hero-poster-wrap" style="display:block" href="#/film/${y}/${slug(f.t)}">
-      <div class="hero-poster" style="width:100%">
+    <a class="mehrab hero-niche" href="#/film/${y}/${slug(f.t)}">
+      <div class="hero-poster">
         ${fallbackHTML(f, y, "wall-fallback")}
         <img alt="Poster of ${esc(f.t)}" data-poster="${y}:${i}" data-size="640" style="position:absolute;inset:0">
       </div>
+      <div class="niche-caption">${deva(y)} · now showing</div>
     </a>`;
   }
 
@@ -430,11 +450,12 @@
           <span class="fc-line">${esc(e.en)} · certified classic of ${y}</span>
         </div>
         <div class="fs-top">
-          <div class="fs-poster-wrap">
+          <div class="mehrab fs-niche">
             <div class="fs-poster">
               ${fallbackHTML(f, y, "wall-fallback")}
               <img alt="Poster of ${esc(f.t)}" data-fs-poster style="position:absolute;inset:0">
             </div>
+            <div class="niche-caption">${deva(y)}</div>
           </div>
           <div class="fs-id">
             <span class="fs-kicker">${y} · ${esc(e.en)} · ${esc(e.hi)}</span>
@@ -484,7 +505,7 @@
           <div class="song-pills">${songsHTML}</div>
         </section>` : ""}
 
-        <p class="garland small"></p>
+        <div class="paisley-div small"></div>
       </div>`;
 
     layer.hidden = false;
