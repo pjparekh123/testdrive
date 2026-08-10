@@ -426,11 +426,26 @@
   }
 
   /* ── film sheet — the kissa file ──────────────────────────── */
-  /* Opens the footage on YouTube in a new tab. An inline player is not an
-     option here: embedding a *search* rather than a known video id relied on
-     the listType=search parameter, which YouTube no longer supports, and the
-     films are far too many to hand-pick video ids for. */
-  function videoSlot(label, sub, query) {
+  /* A curated video plays inline behind its real thumbnail. Without one we
+     fall back to a tightly-scoped search — never a bare embed, because
+     embedding a search needed the listType=search parameter YouTube retired. */
+  const VIDEOS = window.VIDEOS || {};
+
+  function videoSlot(label, sub, query, key) {
+    const v = key && VIDEOS[key];
+    if (v) {
+      return `
+      <div class="video-slot has-video" data-v="${esc(v.v)}">
+        <button class="vs-cover" aria-label="Play ${esc(label)}">
+          <img class="vs-thumb" alt="" loading="lazy"
+               src="https://i.ytimg.com/vi/${esc(v.v)}/hqdefault.jpg">
+          <span class="vs-scrim"></span>
+          <span class="vs-play">▶</span>
+          <span class="vs-label">${esc(label)}</span>
+          <span class="vs-sub">${esc(v.c || sub)}</span>
+        </button>
+      </div>`;
+    }
     return `
     <a class="video-slot" href="${yt(query)}" target="_blank" rel="noopener">
       <span class="vs-cover">
@@ -469,13 +484,25 @@
 
     // the first kissa is quoted up top, so the list below starts at the second
     const triviaHTML = (f.tr || []).slice(1).map((t) => `<div class="trivia-item">${esc(t)}</div>`).join("");
-    const songsHTML = (f.s || []).map((s) =>
-      `<a class="song-pill" target="_blank" rel="noopener" href="${yt(`${s} ${f.t} ${y} song`)}">${esc(s)}</a>`).join("");
+    const songsHTML = (f.s || []).map((s) => {
+      const v = VIDEOS[`${y}|${f.t}|song|${s}`];
+      const href = v ? `https://www.youtube.com/watch?v=${encodeURIComponent(v.v)}`
+                     : yt(`${s} ${f.t} ${y} song`);
+      return `<a class="song-pill${v ? " known" : ""}" target="_blank" rel="noopener"
+                 href="${href}"${v ? ` title="${esc(v.c || "")}"` : ""}>${esc(s)}</a>`;
+    }).join("");
 
-    const videos = [
-      videoSlot(`Songs of ${f.t}`, "video jukebox · via YouTube search", `${searchTerm} full songs jukebox`),
-      videoSlot("Behind the scenes", "making-of & rare footage", `${searchTerm} making behind the scenes rare`),
-      videoSlot(`${f.d ? f.d.split(",")[0] : "Director"} & cast in conversation`, "interviews & retrospectives", `${f.t} ${f.d || ""} ${lead} interview`),
+    // One card per actual song title — a named song finds the real thing;
+    // "full songs jukebox" finds whatever happens to rank.
+    const songCards = (f.s || []).slice(0, 4).map((song) =>
+      videoSlot(song, `song · ${f.m || f.t}`,
+        `${song} ${f.t} ${y} full video song`,
+        `${y}|${f.t}|song|${song}`)).join("");
+    const videos = songCards + [
+      videoSlot("Behind the scenes", "making-of & rare footage",
+        `${searchTerm} making behind the scenes rare`, `${y}|${f.t}|bts`),
+      videoSlot(`${f.d ? f.d.split(",")[0] : "Director"} & cast in conversation`, "interviews & retrospectives",
+        `${f.t} ${f.d || ""} ${lead} interview`, `${y}|${f.t}|interview`),
     ].join("");
 
     sheet.innerHTML = `
@@ -552,6 +579,18 @@
     window.Wiki.poster(f, sheet.querySelector("[data-fs-poster]"), 640);
     sheet.querySelectorAll("[data-person]").forEach((img) => window.Wiki.person(img.dataset.person, img));
     sheet.querySelector(".fs-close").addEventListener("click", () => history.back());
+    // curated videos play in place, behind their own thumbnail
+    sheet.querySelectorAll(".video-slot.has-video").forEach((slot) => {
+      slot.querySelector(".vs-cover").addEventListener("click", () => {
+        const id = slot.dataset.v;
+        slot.innerHTML =
+          `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0"
+             title="${esc(f.t)}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+             allowfullscreen></iframe>
+           <a class="vs-out" target="_blank" rel="noopener"
+              href="https://www.youtube.com/watch?v=${encodeURIComponent(id)}">Watch on YouTube ↗</a>`;
+      });
+    });
     sheet.querySelector(".fs-close").focus({ preventScroll: true });
   }
 

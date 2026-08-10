@@ -105,9 +105,30 @@ Two things to know when the site is public:
   question worth settling for yourself — the painted plates are the safe default,
   and skipping the baking step keeps the site entirely free of hosted artwork.
 
-Songs and videos open a YouTube search in a new tab rather than embedding a
-player: embedding a *search* needed the `listType=search` parameter YouTube
-retired, and pinning a video id per film is not something this data carries.
+### Curating the videos
+
+Out of the box each song gets a tightly-scoped YouTube search — by its actual
+title (`"Yeh Dosti Hum Nahin Todenge" Sholay 1975 full video song`), not a
+generic "jukebox" query. That lands on the right thing far more often, but it
+is still a search. To pick actual videos:
+
+```bash
+YT_API_KEY=... node tools/fetch-videos.mjs --since 1970 --until 1979
+node tools/fetch-videos.mjs --audit
+```
+
+Each resolved video then shows its **real thumbnail**, credits the channel, and
+plays inline via `youtube-nocookie`. Results are scored rather than taken at
+face value: the rights-holders and archives that actually own this material —
+Shemaroo, Saregama, Ultra, Rajshri, YRF, T-Series for the catalogue; Lehren
+Retro, Film Companion, Doordarshan and Film Heritage Foundation for on-set
+footage and interviews — are strongly preferred, while reaction videos, status
+clips, karaoke and fan re-uploads are pushed down. `--audit` reports what share
+of your curated set came from an official channel.
+
+A key is free (`console.cloud.google.com` → YouTube Data API v3) but each
+search costs 100 of the 10,000 daily quota units, so work decade by decade with
+`--since` / `--until`; everything already resolved is preserved between runs.
 
 ## Data honesty
 
