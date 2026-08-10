@@ -1,85 +1,79 @@
 /* ═══════════════════════════════════════════════════════════════════
-   PARDA · devices.css
-   Three deliberately different designs — not one stretched layout.
+   PARDA · devices.css — three editions of the same book.
 
-   ▸ Laptop  (≥1100px): a cinema lobby. Wide poster walls, hover play,
-     film detail as a centred two-column premiere card.
-   ▸ iPad    (700–1099px): a coffee-table album. Cosy 2–3 column
-     grids, detail as a full-bleed sheet you flip through.
-   ▸ Mobile  (<700px): a pocket app. Bottom tab bar, thumb-reach
-     year chips, detail as a full-screen page that slides up.
+   ▸ Laptop  (≥1100px): the full folio — alternating left/right year
+     spreads, wide filmstrips, film detail as a centred plate.
+   ▸ iPad    (700–1099px): the coffee-table edition — generous single
+     column spreads, detail as a full-bleed plate.
+   ▸ Mobile  (<700px): the pocket paperback — bottom tab bar, stacked
+     spreads, detail as a full-screen page.
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ─────────────────────────── LAPTOP ─────────────────────────── */
 @media (min-width: 1100px) {
-  .era-list { grid-template-columns: 1fr 1fr; }
-  .era-card[data-era="silent"] { grid-column: 1 / -1; }
-  .era-card { min-height: 200px; align-content: center; }
+  .cover { padding-top: 5.5rem; }
+  .toc { grid-template-columns: 1fr 1fr; }
+  .chapter-plate[data-era="silent"] { grid-column: 1 / -1; }
 
-  .film-grid { grid-template-columns: repeat(5, 1fr); }
+  /* year spreads alternate like facing pages */
+  .hero-film { grid-template-columns: 340px 1fr; }
+  .hero-film.flip { grid-template-columns: 1fr 340px; }
+  .hero-film.flip .hero-poster-wrap { order: 2; }
+  .hero-film.flip .hero-info { order: 1; justify-items: end; text-align: right; }
+  .hero-film.flip .pullquote { padding: .4rem 2.6rem .4rem 0; }
+  .hero-film.flip .pullquote::before { left: auto; right: 0; }
+  .hero-film.flip .hero-more { justify-self: end; }
+  .hero-film.flip .hero-badges { justify-content: flex-end; }
 
-  /* Premiere-card dialog */
+  .frame { flex-basis: 140px; }
+
+  .poster-wall { grid-template-columns: repeat(5, 1fr); }
+
   #film-sheet {
     inset: 4vh 50% auto auto; transform: translateX(50%);
     width: min(1020px, 92vw); max-height: 92vh;
-    border-radius: 18px;
+    border-radius: 8px;
     animation: sheetIn .45s var(--ease) both;
   }
   @keyframes sheetIn {
     from { opacity: 0; transform: translateX(50%) translateY(28px) scale(.98); }
     to { opacity: 1; transform: translateX(50%) translateY(0) scale(1); }
   }
-  .fs-body { padding: 2.2rem 2.6rem 2.6rem; }
-  .fs-top { grid-template-columns: 300px 1fr; align-items: start; }
-  .fs-poster { transform: rotate(-1.2deg); }
+  .fs-body { padding: 1.8rem 2.6rem 2.6rem; }
+  .fs-top { grid-template-columns: 330px 1fr; align-items: start; }
   .video-row { grid-template-columns: 1fr 1fr; }
   .video-row .video-slot:first-child:nth-last-child(odd) { grid-column: 1 / -1; }
 
-  /* lobby-style hover reveal on cards */
-  .film-card .fc-hover {
-    position: absolute; inset: auto 0 0; z-index: 2;
-    padding: 2.2rem .9rem .75rem;
-    background: linear-gradient(180deg, transparent, rgba(10,6,4,.92) 55%);
-    opacity: 0; transform: translateY(8px);
-    transition: all .35s var(--ease);
-    font-family: var(--serif); font-style: italic; font-size: .84rem;
-    color: var(--paper-dim); line-height: 1.45; pointer-events: none;
-  }
-  .film-card:hover .fc-hover { opacity: 1; transform: none; }
-
-  .ticket-strip { max-width: 900px; margin-left: auto; margin-right: auto; }
-  .tl-years .ticket { min-width: 86px; }
+  .page-turn a { padding: .8rem 1.6rem; }
 }
 
-/* Between tablet & laptop, keep things sane */
 @media (min-width: 900px) and (max-width: 1099px) {
-  .film-grid { grid-template-columns: repeat(4, 1fr); }
+  .poster-wall { grid-template-columns: repeat(4, 1fr); }
 }
 
 /* ─────────────────────────── iPAD ───────────────────────────── */
 @media (min-width: 700px) and (max-width: 1099px) {
-  #stage { padding: 1.5rem 2rem 5rem; }
-  .era-list { grid-template-columns: 1fr 1fr; }
-  .era-card { padding: 1.4rem 1.5rem; }
-  .era-blurb { font-size: .88rem; }
+  #stage { padding: 0 2.2rem 4rem; }
+  .toc { grid-template-columns: 1fr 1fr; }
+  .chapter-plate[data-era="silent"] { grid-column: 1 / -1; }
+  .cp-body { padding: 1.7rem 1.8rem 1.5rem; }
 
-  .film-grid { grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  .hero-film { grid-template-columns: 300px 1fr; }
+  .frame { flex-basis: 128px; }
+  .poster-wall { grid-template-columns: repeat(3, 1fr); }
 
-  /* Album sheet: near-fullscreen, generous type, swipe-friendly */
   #film-sheet {
-    inset: 3vh 3vw; border-radius: 20px;
+    inset: 3vh 3vw; border-radius: 10px;
     animation: sheetUp .4s var(--ease) both;
   }
-  .fs-top { grid-template-columns: 260px 1fr; align-items: start; }
-  .fs-body { padding: 1.8rem 2rem 2.4rem; }
+  .fs-top { grid-template-columns: 280px 1fr; align-items: start; }
+  .fs-body { padding: 1.6rem 2rem 2.4rem; }
   .video-row { grid-template-columns: 1fr 1fr; }
   .video-row .video-slot:first-child:nth-last-child(odd) { grid-column: 1 / -1; }
-  .cast-card { width: 104px; }
-  .cast-ph, .cast-ph img { width: 92px; height: 92px; }
+  .cast-card { width: 106px; }
+  .cast-ph { width: 92px; height: 92px; }
 
-  /* Larger touch targets */
-  .ticket { padding: .7rem 1.3rem .6rem; }
-  #top-nav { gap: 1.1rem; font-size: .74rem; }
+  #top-nav { gap: 1.2rem; font-size: .7rem; }
 }
 
 @keyframes sheetUp {
@@ -89,67 +83,57 @@
 
 /* ─────────────────────────── MOBILE ─────────────────────────── */
 @media (max-width: 699px) {
-  body { font-size: 15.5px; }
-  #stage { padding: 1rem 1rem 6.5rem; }
+  body { font-size: 16px; }
+  #stage { padding: 0 1rem 6.5rem; }
 
-  /* Compact masthead: brand only; nav lives in the tab bar */
-  #masthead { padding: .65rem 1rem; }
+  #masthead { padding: .6rem 1rem; }
   #top-nav { display: none; }
-  .brand-tag { display: none; }
-  .brand-hi { font-size: 1.3rem; }
+  .brand-hi { font-size: 1.25rem; }
 
-  /* Bottom tab bar — thumb territory */
   #tab-bar {
     display: flex; position: fixed; inset: auto 0 0; z-index: 50;
     justify-content: space-around; align-items: stretch;
-    background: linear-gradient(180deg, rgba(23,16,13,.92), rgba(15,10,8,.98));
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border-top: var(--line);
-    padding: .45rem 0 calc(.45rem + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--era-wash) 92%, white 8%);
+    border-top: 3px double rgba(44, 24, 16, .4);
+    padding: .4rem 0 calc(.4rem + env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 24px rgba(44,24,16,.15);
   }
   #tab-bar a {
     display: grid; justify-items: center; gap: .1rem; flex: 1;
-    font-family: var(--ui); font-size: .58rem; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--paper-faint); padding: .2rem 0;
+    font-family: var(--ui); font-weight: 600; font-size: .56rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-faint); padding: .2rem 0;
   }
-  #tab-bar a .tb-ic { font-size: 1.15rem; }
-  #tab-bar a.active { color: var(--gold-hi); }
-  #tab-bar a.active .tb-ic { text-shadow: 0 0 14px var(--gold); }
+  #tab-bar a .tb-ic { font-size: 1.1rem; }
+  #tab-bar a.active { color: var(--sindoor); }
 
-  .hero { padding: 2rem .4rem 1.2rem; }
-  .hero-stats { gap: 1.4rem; }
+  .cover { padding: 2.6rem .4rem 2.4rem; }
+  .cover-strip .cs-cell { padding: .55rem 1rem; }
+  .cover-ctas { flex-direction: column; align-items: center; }
 
-  /* Era cards: full-width stacked, tighter */
-  .era-card { padding: 1.15rem 1.2rem 1.1rem; }
-  .era-card::after { font-size: 1.7rem; right: 18px; top: 14px; }
-  .era-blurb { display: none; }        /* keep the feed scannable */
-  .era-tag2 { font-size: .86rem; }
-  .era-name { font-size: 1.25rem; }
+  .cp-body { padding: 1.4rem 1.3rem 1.2rem; }
+  .cp-motif { display: none; }
+  .cp-films { display: none; }
 
-  /* Year page: sticky year-chip scroller under the masthead */
-  .ticket-strip {
-    flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-    margin: 1rem -1rem; padding: .3rem 1rem .6rem;
-    position: sticky; top: 56px; z-index: 30;
-    background: linear-gradient(180deg, var(--era-wash) 70%, transparent);
-  }
-  .ticket-strip::-webkit-scrollbar { display: none; }
-  .ticket { scroll-snap-align: center; }
-  .ticket b { font-size: 1.05rem; }
+  .chapter-cover { padding-top: 2.2rem; }
+  .spread { padding-top: 2.2rem; }
+  .spread-mast { gap: .5rem; }
+  .hero-film { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .hero-info { justify-items: center; }
+  .hero-poster { width: min(250px, 72vw); }
+  .pullquote { text-align: left; font-size: 1.1rem; }
+  .hero-badges { justify-content: center; }
 
-  /* Poster feed: two-up like a pocket gallery */
-  .film-grid { grid-template-columns: 1fr 1fr; gap: .8rem; }
-  .fc-title { font-size: .92rem; }
-  .fc-hi { font-size: .78rem; }
-  .rank-medal { width: 2.1rem; height: 2.1rem; font-size: .9rem; }
-  .fc-hover { display: none; }
+  .frame { flex-basis: 112px; }
+  .filmstrip { margin: 0 -1rem; border-radius: 0; padding-inline: 1rem; }
 
-  .year-big { font-size: 3.4rem; }
-  .list-toggle { width: 100%; }
-  .list-toggle button { flex: 1; padding: .6rem .4rem; font-size: .66rem; }
+  .poster-wall { grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .wall-cap b { font-size: .85rem; }
 
-  /* Full-screen film page sliding up */
+  .interlude { padding: 1.6rem 1.2rem 1.3rem; }
+
+  .bookmarks { width: 100%; }
+  .bookmarks button { flex: 1; padding: .55rem .4rem .45rem; font-size: .62rem; }
+
   #film-sheet {
     inset: 0; border: none; border-radius: 0;
     animation: pageUp .38s var(--ease) both;
@@ -158,17 +142,16 @@
   @keyframes pageUp { from { transform: translateY(6%); opacity: .4; } to { transform: none; opacity: 1; } }
   .fs-body { padding: 0 1.1rem 2.5rem; gap: 1.3rem; }
   .fs-top { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-  .fs-poster { width: min(240px, 68vw); max-width: 240px; margin-top: .6rem; }
+  .fs-poster { width: min(240px, 68vw); margin-top: .4rem; }
   .fs-id { justify-items: center; }
   .fs-facts { font-size: .88rem; }
   .fs-links { justify-content: center; }
-  .fs-section > h3 { font-size: 1.05rem; }
+  .fs-section > h3 { font-size: 1.1rem; }
   .video-row { grid-template-columns: 1fr; }
   .cast-strip { scroll-snap-type: x proximity; }
   .cast-card { scroll-snap-align: start; }
   .fs-close { position: fixed; top: .9rem; right: .9rem; margin: 0; }
 
-  .sr-item { padding: .7rem .9rem; }
-  #search-input { font-size: 1.05rem; }
+  .page-turn { flex-wrap: wrap; justify-content: center; }
   #colophon { padding-bottom: 6rem; }
 }

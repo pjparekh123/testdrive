@@ -1,102 +1,100 @@
 /* ═══════════════════════════════════════════════════════════════════
-   PARDA · eras.css — every decade wears its own colours.
-   body[data-era] retints the whole app; .era-card[data-era] tints cards.
+   PARDA · eras.css — every chapter is printed on its own paper.
+   The wash tints the page; the accents recolour garlands, stamps,
+   filmstrip holes and headlines. Old chapters get old-photo filters.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* Silent era — sepia nitrate, hand-tinted amber */
+/* Silent era — nitrate sepia plates */
 body[data-era="silent"] {
-  --era-a: #c9a05a; --era-b: #8a5a2b;
-  --era-glow: rgba(201, 160, 90, .20);
-  --era-wash: #191008;
+  --era-a: #8a5a2b; --era-b: #a97e2f;
+  --era-wash: #f2e2bd;
 }
-body[data-era="silent"] .poster-wrap img,
-body[data-era="silent"] .fs-poster img { filter: sepia(.55) contrast(1.05); }
+body[data-era="silent"] .hero-poster img,
+body[data-era="silent"] .wall-poster img,
+body[data-era="silent"] .fr-poster img,
+body[data-era="silent"] .fs-poster img { filter: sepia(.6) contrast(1.05); }
 
-/* 1930s — Bombay Deco: ivory, jade & radio-dial gold */
+/* 1930s — jade & ivory, Bombay Deco */
 body[data-era="1930s"] {
-  --era-a: #bfa46a; --era-b: #2e6e63;
-  --era-glow: rgba(46, 110, 99, .22);
-  --era-wash: #101713;
+  --era-a: #21655c; --era-b: #a97e2f;
+  --era-wash: #eee6c6;
 }
-body[data-era="1930s"] .poster-wrap img,
-body[data-era="1930s"] .fs-poster img { filter: sepia(.35) contrast(1.04); }
+body[data-era="1930s"] .hero-poster img,
+body[data-era="1930s"] .wall-poster img,
+body[data-era="1930s"] .fr-poster img,
+body[data-era="1930s"] .fs-poster img { filter: sepia(.4) contrast(1.04); }
 
-/* 1940s — khadi ivory, ink & flag saffron */
+/* 1940s — khadi & flag saffron */
 body[data-era="1940s"] {
-  --era-a: #d98f33; --era-b: #3d6b4f;
-  --era-glow: rgba(217, 143, 51, .18);
-  --era-wash: #161209;
+  --era-a: #bf6414; --era-b: #3d6b4f;
+  --era-wash: #f2e5c4;
 }
-body[data-era="1940s"] .poster-wrap img,
-body[data-era="1940s"] .fs-poster img { filter: sepia(.25) contrast(1.05); }
+body[data-era="1940s"] .hero-poster img,
+body[data-era="1940s"] .wall-poster img,
+body[data-era="1940s"] .fr-poster img,
+body[data-era="1940s"] .fs-poster img { filter: sepia(.28) contrast(1.05); }
 
-/* 1950s — Golden Age: silver-nitrate black & champagne gold */
+/* 1950s — silver nitrate & champagne */
 body[data-era="1950s"] {
-  --era-a: #e3c274; --era-b: #7d7d85;
-  --era-glow: rgba(227, 194, 116, .22);
-  --era-wash: #121014;
+  --era-a: #8a6d20; --era-b: #5d6068;
+  --era-wash: #f0e8d2;
 }
-body[data-era="1950s"] .poster-wrap img,
-body[data-era="1950s"] .fs-poster img { filter: grayscale(.18) contrast(1.08); }
+body[data-era="1950s"] .hero-poster img,
+body[data-era="1950s"] .wall-poster img,
+body[data-era="1950s"] .fr-poster img,
+body[data-era="1950s"] .fs-poster img { filter: grayscale(.25) sepia(.12) contrast(1.08); }
 
-/* 1960s — Eastmancolor: rose, teal, Kashmir sky */
+/* 1960s — Eastmancolor rose & Kashmir teal */
 body[data-era="1960s"] {
-  --era-a: #e56b8c; --era-b: #2e8f96;
-  --era-glow: rgba(229, 107, 140, .18);
-  --era-wash: #141019;
+  --era-a: #bb2a6c; --era-b: #0f6a6c;
+  --era-wash: #f7e6d3;
 }
 
-/* 1970s — masala pulp: burnt orange, mustard, chai brown */
+/* 1970s — masala pulp: burnt orange & chai */
 body[data-era="1970s"] {
-  --era-a: #e8862c; --era-b: #b3302a;
-  --era-glow: rgba(232, 134, 44, .22);
-  --era-wash: #1a0f08;
+  --era-a: #bd5310; --era-b: #7c1f22;
+  --era-wash: #f4e2bf;
 }
 
-/* 1980s — disco: magenta neon on midnight purple */
+/* 1980s — rani pink & disco purple */
 body[data-era="1980s"] {
-  --era-a: #e14fa0; --era-b: #6a3ec9;
-  --era-glow: rgba(225, 79, 160, .2);
-  --era-wash: #150c1c;
+  --era-a: #bb2a6c; --era-b: #5b3a8e;
+  --era-wash: #f6e3d2;
 }
 
-/* 1990s — chiffon romance: emerald meadows & bridal rose */
+/* 1990s — mehendi green & bridal rose */
 body[data-era="1990s"] {
-  --era-a: #4fae7e; --era-b: #d4547a;
-  --era-glow: rgba(79, 174, 126, .18);
-  --era-wash: #0d1610;
+  --era-a: #2e7a4e; --era-b: #bb2a6c;
+  --era-wash: #eeeacb;
 }
 
-/* 2000s — multiplex gloss: steel blue & silver */
+/* 2000s — multiplex royal blue & silver */
 body[data-era="2000s"] {
-  --era-a: #6f9fd8; --era-b: #b6c4d8;
-  --era-glow: rgba(111, 159, 216, .18);
-  --era-wash: #0d1219;
+  --era-a: #2e4a97; --era-b: #6f86a8;
+  --era-wash: #ece7d4;
 }
 
-/* 2010s — new wave: deep indigo & tangerine */
+/* 2010s — tangerine & indigo */
 body[data-era="2010s"] {
-  --era-a: #f2a03d; --era-b: #4a55a8;
-  --era-glow: rgba(74, 85, 168, .25);
-  --era-wash: #0e1020;
+  --era-a: #c26a09; --era-b: #3b4a8f;
+  --era-wash: #f3e6c8;
 }
 
-/* 2020s — streaming dark mode: electric teal & crimson */
+/* 2020s — deep teal & crimson stream */
 body[data-era="2020s"] {
-  --era-a: #2ec4b6; --era-b: #e63946;
-  --era-glow: rgba(46, 196, 182, .16);
-  --era-wash: #0a1214;
+  --era-a: #0e6b64; --era-b: #c0331b;
+  --era-wash: #eae6d0;
 }
 
-/* Era cards on the home page pick up their own accent */
-.era-card[data-era="silent"] { --ec-a: #c9a05a; --ec-bg: #1d1409; }
-.era-card[data-era="1930s"]  { --ec-a: #7fb3a5; --ec-bg: #14201b; }
-.era-card[data-era="1940s"]  { --ec-a: #d98f33; --ec-bg: #201a0e; }
-.era-card[data-era="1950s"]  { --ec-a: #e3c274; --ec-bg: #1a181e; }
-.era-card[data-era="1960s"]  { --ec-a: #e56b8c; --ec-bg: #1e1524; }
-.era-card[data-era="1970s"]  { --ec-a: #e8862c; --ec-bg: #23150b; }
-.era-card[data-era="1980s"]  { --ec-a: #e14fa0; --ec-bg: #1d1128; }
-.era-card[data-era="1990s"]  { --ec-a: #4fae7e; --ec-bg: #122019; }
-.era-card[data-era="2000s"]  { --ec-a: #6f9fd8; --ec-bg: #121a24; }
-.era-card[data-era="2010s"]  { --ec-a: #f2a03d; --ec-bg: #14162b; }
-.era-card[data-era="2020s"]  { --ec-a: #2ec4b6; --ec-bg: #0e1a1c; }
+/* Chapter plates on the cover pick up their own inks */
+.chapter-plate[data-era="silent"] { --ca: #8a5a2b; --cb: #a97e2f; }
+.chapter-plate[data-era="1930s"]  { --ca: #21655c; --cb: #a97e2f; }
+.chapter-plate[data-era="1940s"]  { --ca: #bf6414; --cb: #3d6b4f; }
+.chapter-plate[data-era="1950s"]  { --ca: #8a6d20; --cb: #5d6068; }
+.chapter-plate[data-era="1960s"]  { --ca: #bb2a6c; --cb: #0f6a6c; }
+.chapter-plate[data-era="1970s"]  { --ca: #bd5310; --cb: #7c1f22; }
+.chapter-plate[data-era="1980s"]  { --ca: #bb2a6c; --cb: #5b3a8e; }
+.chapter-plate[data-era="1990s"]  { --ca: #2e7a4e; --cb: #bb2a6c; }
+.chapter-plate[data-era="2000s"]  { --ca: #2e4a97; --cb: #6f86a8; }
+.chapter-plate[data-era="2010s"]  { --ca: #c26a09; --cb: #3b4a8f; }
+.chapter-plate[data-era="2020s"]  { --ca: #0e6b64; --cb: #c0331b; }

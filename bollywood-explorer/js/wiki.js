@@ -123,7 +123,7 @@ window.Wiki = (function () {
       if (!url || !imgEl.isConnected) return;
       imgEl.onload = () => {
         imgEl.classList.add("loaded");
-        const fb = imgEl.parentElement && imgEl.parentElement.querySelector(".poster-fallback");
+        const fb = imgEl.parentElement && imgEl.parentElement.querySelector("[data-fallback]");
         if (fb) fb.style.display = "none";
       };
       imgEl.src = url;

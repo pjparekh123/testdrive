@@ -18,12 +18,19 @@ Or publish the `bollywood-explorer/` folder to GitHub Pages / Netlify / any stat
 
 ## What's inside
 
-- **Era-first navigation** — each decade is its own themed world (palette, tone, filters):
-  sepia for the silent era, silver-nitrate gold for the 1950s, disco magenta for the 1980s,
-  streaming-dark teal for the 2020s. The whole app retints as you travel through time.
-- **Two lists per year** — toggle between *₹ Box-Office Toppers* (curated from period trade
-  reports; older decades are best historical estimates) and *★ IMDb Favourites* (community
-  ratings, approximate snapshots).
+- **A coffee-table book, not a database** — the site reads as chapters (one per era), each a
+  sequence of editorial *year spreads*: the film of the year presented large with a pull-quote
+  kissa and a rubber-stamp verdict, the rest of the marquee on a sprocketed filmstrip, and
+  famous dialogue/song "ephemera" cards taped between the pages. Intermission plates turn you
+  to the next chapter.
+- **Printed-in-India aesthetic** — cream book paper with bandhani-dot texture and grain,
+  sindoor red, marigold, turmeric, peacock, rani pink and gold; toran scallop borders,
+  sunburst hoarding cover with offset-shadow Devanagari lettering (Modak/Yatra One), Rozha One
+  editorial headlines, Eczar body text. Every chapter is printed on its own tinted paper, and
+  old chapters get old-photo poster filters.
+- **Two lists per year** — bookmark tabs flip between *₹ The Queue Outside* (earnings, curated
+  from period trade reports; older decades are best historical estimates) and *★ The Critics'
+  Shelf* (IMDb community ratings, approximate snapshots).
 - **Film pages** — Hindi + English titles, director/cast/composer, verdict badges, curated
   trivia, song pills, and one-tap links to Spotify, Apple Music, JioSaavn, IMDb and Wikipedia.
 - **Live imagery** — posters and cast portraits load at runtime from the Wikipedia/Wikimedia
@@ -31,12 +38,11 @@ Or publish the `bollywood-explorer/` folder to GitHub Pages / Netlify / any stat
   and shows era-styled fallback cards when an image isn't available.
 - **Videos** — click-to-load YouTube players (search-list embeds) for songs/jukeboxes,
   making-of footage and cast/director interviews, without hardcoding video IDs that rot.
-- **Three deliberate designs, not one stretched layout** — laptop is a cinema-lobby poster
-  wall with hover reveals and a premiere-card dialog; iPad is a coffee-table album with a
-  full-bleed sheet; mobile is a pocket app with a bottom tab bar, thumb-reach year chips and
-  full-screen film pages.
-- **Search & Kismat** — full-text search across films, people and composers; a "Kismat"
-  wheel that surfaces a random gem worth discovering.
+- **Three editions of the book, not one stretched layout** — laptop is the full folio with
+  alternating left/right facing-page spreads; iPad is the coffee-table edition in a generous
+  single column; mobile is the pocket paperback with a bottom tab bar and full-screen pages.
+- **Index & Matinee** — a book-style index for search, and a "Matinee" page that lets the
+  book fall open on a random gem.
 
 ## Structure
 

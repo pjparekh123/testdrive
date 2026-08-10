@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>पर्दा · Parda — A Century of Hindi Cinema</title>
-<meta name="description" content="Explore the top-earning and top-rated Bollywood films of every year since 1913 — posters, cast, trivia, songs and stories from a hundred years of Hindi cinema.">
+<meta name="description" content="A coffee-table book of Hindi cinema — the top-earning and best-loved films of every year since 1913, with posters, faces, kisse, songs and stories.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎬</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Tiro+Devanagari+Hindi:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400;1,600&family=Karma:wght@300;400;500;600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Yatra+One&family=Modak&family=Tiro+Devanagari+Hindi:ital@0;1&family=Eczar:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/eras.css">
 <link rel="stylesheet" href="css/devices.css">
@@ -18,21 +18,20 @@
 <div id="grain" aria-hidden="true"></div>
 
 <header id="masthead">
-  <a href="#/" id="brand" aria-label="Parda — home">
-    <span class="brand-reel" aria-hidden="true">✦</span>
+  <a href="#/" id="brand" aria-label="Parda — cover">
+    <span class="brand-reel" aria-hidden="true">✽</span>
     <span class="brand-text">
       <span class="brand-hi">पर्दा</span>
       <span class="brand-en">PARDA</span>
-      <span class="brand-tag">a century of Hindi cinema</span>
     </span>
   </a>
   <nav id="top-nav" aria-label="Primary">
-    <a href="#/" data-nav="home">Eras</a>
-    <a href="#/timeline" data-nav="timeline">Timeline</a>
-    <a href="#/search" data-nav="search">Search</a>
-    <a href="#/surprise" data-nav="surprise" id="nav-surprise">Kismat ✦</a>
+    <a href="#/" data-nav="home">Cover</a>
+    <a href="#/timeline" data-nav="timeline">Chapters</a>
+    <a href="#/search" data-nav="search">Index</a>
+    <a href="#/surprise" data-nav="surprise" id="nav-surprise">Matinee ✦</a>
   </nav>
-  <button id="search-toggle" aria-label="Search films" title="Search films">⌕</button>
+  <button id="search-toggle" aria-label="Open the index" title="Open the index">⌕</button>
 </header>
 
 <main id="stage" tabindex="-1"></main>
@@ -43,19 +42,20 @@
 </div>
 
 <nav id="tab-bar" aria-label="Sections">
-  <a href="#/" data-nav="home"><span class="tb-ic">✦</span><span>Eras</span></a>
-  <a href="#/timeline" data-nav="timeline"><span class="tb-ic">॥</span><span>Years</span></a>
-  <a href="#/search" data-nav="search"><span class="tb-ic">⌕</span><span>Search</span></a>
-  <a href="#/surprise" data-nav="surprise"><span class="tb-ic">✧</span><span>Surprise</span></a>
+  <a href="#/" data-nav="home"><span class="tb-ic">✽</span><span>Cover</span></a>
+  <a href="#/timeline" data-nav="timeline"><span class="tb-ic">॥</span><span>Chapters</span></a>
+  <a href="#/search" data-nav="search"><span class="tb-ic">⌕</span><span>Index</span></a>
+  <a href="#/surprise" data-nav="surprise"><span class="tb-ic">✦</span><span>Matinee</span></a>
 </nav>
 
 <footer id="colophon">
-  <p class="colo-orn" aria-hidden="true">❋ ❋ ❋</p>
-  <p>Made with love for the movies. Rankings are curated from period box-office reports and IMDb community ratings; figures for older decades are best historical estimates.</p>
+  <p class="colo-orn" aria-hidden="true">❁ ✦ ❁</p>
+  <p>Bound with love for the movies. Rankings are curated from period box-office reports and IMDb community ratings; figures for older decades are best historical estimates.</p>
   <p>Posters &amp; photographs load live from Wikipedia/Wikimedia Commons and belong to their rightful owners. Songs &amp; videos play via YouTube search.</p>
 </footer>
 
 <script src="data/eras.js"></script>
+<script src="data/ephemera.js"></script>
 <script src="data/films-1910s.js"></script>
 <script src="data/films-1930s.js"></script>
 <script src="data/films-1940s.js"></script>
